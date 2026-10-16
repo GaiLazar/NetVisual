@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6.svg?logo=windows)](https://github.com/gaipunkx/NetVisual)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0078D6.svg?logo=windows)](https://github.com/GaiLazar/NetVisual)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?logo=python&logoColor=white)](https://python.org)
 [![Zero External Deps](https://img.shields.io/badge/Runtime%20Dependencies-Zero%20External%20Deps-brightgreen.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -17,6 +17,10 @@
 ---
 
 A single click gives you an instant, GPU-accelerated cyber dashboard covering your entire LAN and WAN: your local PC, gateway, discovered neighbors, live packet sniffer, speed test, Wi-Fi spectrum optimizer, threat inspector,  profile switcher, and 30-day time-series analytics.
+
+<div align="center">
+  <img src="docs/screenshots/noc-view.png" alt="NetVisual NOC Wallboard Telemetry" width="100%" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);" />
+</div>
 
 ```
 ┌─────────────┐        ┌─────────────┐        ┌──────────────────┐
@@ -44,6 +48,10 @@ A single click gives you an instant, GPU-accelerated cyber dashboard covering yo
 - **Top Talkers by Process**: Aggregated socket telemetry grouped by executable.
 - **Remote Peer Grouping**: Classification of active sockets (Local LAN vs. External WAN endpoints).
 
+<p align="center">
+  <img src="docs/screenshots/live.png" alt="Live Network Monitor" width="95%" style="border-radius: 6px;" />
+</p>
+
 ### 2. 🤖 Cyber AI Copilot & Agent Tools
 - **Multi-Model Intelligence**: Native support for **Google Gemini**, **Anthropic Claude**, **OpenAI GPT-4o**, and local **Ollama** endpoints.
 - **Autonomous Tool Execution**: The AI copilot directly executes local diagnostic routines:
@@ -55,6 +63,10 @@ A single click gives you an instant, GPU-accelerated cyber dashboard covering yo
   - `set_dns`: 1-click DNS switcher tool called by voice/text.
 - **Bilingual Interface**: Native, bidirectional-safe Hebrew (RTL) & English output.
 
+<p align="center">
+  <img src="docs/screenshots/ai.png" alt="Cyber AI Copilot & Agent Tools" width="95%" style="border-radius: 6px;" />
+</p>
+
 ### 3. 🦈 Live Packet Sniffer & Protocol Analyzer (Wireshark Suite)
 - **Real-Time Packet Stream**: Live capture of TCP, UDP, ICMP, DNS, TLS/HTTPS, and HTTP packets without external packet drivers.
 - **Follow TCP / UDP Stream**: Reassembles full client/server conversation payloads in a dual-color stream dialogue.
@@ -65,6 +77,10 @@ A single click gives you an instant, GPU-accelerated cyber dashboard covering yo
   - Monospace 16-byte aligned Hex & ASCII dump viewer.
 - **PCAP Export**: 1-click **⬇ Export .PCAP** generating standard Libpcap binary captures compatible with Wireshark.
 
+<p align="center">
+  <img src="docs/screenshots/sniffer.png" alt="Live Packet Sniffer & Wireshark Suite" width="95%" style="border-radius: 6px;" />
+</p>
+
 ### 4. 🌍 World Geo Map (Zero-API-Key, 100% Free)
 - **Real-Time Geolocation**: Maps all active external internet connections in real time.
 - **Curved Flight Paths**: Geodesic arcs connecting your host PC to destination servers worldwide.
@@ -72,21 +88,37 @@ A single click gives you an instant, GPU-accelerated cyber dashboard covering yo
 - **GPU-Accelerated Cyber Dark Styling**: Sleek, high-contrast dark theme rendered in real time.
 - **Multiple Map Layers**: Cyber Dark Neon, Standard OpenStreetMap, Esri World Satellite Imagery, and Humanitarian (HOT).
 
+<p align="center">
+  <img src="docs/screenshots/geomap.png" alt="World Geo Map Traffic & Threat Radar" width="95%" style="border-radius: 6px;" />
+</p>
+
 ### 5. 🛡️ Threat & Security Inspector
 - **Active Socket Audit**: Scans open TCP/UDP sockets against known vulnerability signatures (malware, miners, remote shells, open SMB/Telnet).
 - **DNS Leak Posture Checker**: Tests upstream DNS resolver privacy and leak vectors.
 - **WHOIS & ASN Resolver**: In-depth IP ownership and reputation inspection.
 - **Security Grade Metric**: Instant global network security grading (e.g. `A+`, 100/100).
 
+<p align="center">
+  <img src="docs/screenshots/security.png" alt="Threat & Security Inspector" width="95%" style="border-radius: 6px;" />
+</p>
+
 ### 6. ⚡ Built-in Speed Test & QoS Analyzer
 - **Multi-Stream Benchmarking**: Fast Download and Upload benchmarks against globally distributed edge CDNs.
 - **Precision QoS Metrics**: Measures **Ping Latency (ms)**, **Jitter (ms)**, and **Packet Loss (%)**.
 - **Cyber Speedometer**: Neon radial needle animations with live throughput progress.
 
+<p align="center">
+  <img src="docs/screenshots/speedtest.png" alt="Built-in Speed Test & QoS" width="95%" style="border-radius: 6px;" />
+</p>
+
 ### 7. 📶 Wi-Fi Analyzer & Spectrum Advisor
 - **Wireless Adapter Inspection**: SSID, BSSID, RSSI Signal (% and dBm), 802.11ax/ac radio standard, WPA security, and link synchronization rates.
 - **Channel Congestion Histograms**: Real-time channel utilization for both **2.4 GHz** (Channels 1–11) and **5 GHz** (Channels 36–165).
 - **Smart Spectrum Advisor**: Algorithmic recommendation for the cleanest, least crowded Wi-Fi channels in your area.
+
+<p align="center">
+  <img src="docs/screenshots/wifi.png" alt="Wi-Fi Spectrum & Channel Advisor" width="95%" style="border-radius: 6px;" />
+</p>
 
 ### 8. 📁 Net Profiles Manager (NetSetMan Visual Suite)
 - **Visual Profile Tabs**: Manage multiple profiles (`#1 Home`, `#2 Work (Static IP)`, `#3 Gaming (Low-Ping)`, `#4 Shield & AdBlock`) with 1-click tab switching.
@@ -94,16 +126,42 @@ A single click gives you an instant, GPU-accelerated cyber dashboard covering yo
 - **DNS Server Management**: Automatic DHCP DNS or **Manual DNS** (Preferred & Alternate DNS) with 1-click presets (Cloudflare, Quad9, AdGuard, Google).
 - **System Proxy & Notes**: Custom notes, proxy IP:Port, profile icons, and automatic adapter binding.
 
+<p align="center">
+  <img src="docs/screenshots/netprofiles.png" alt="Net Profiles Manager" width="95%" style="border-radius: 6px;" />
+</p>
+
 ### 9. 🧰 Network Tools & System Repair
 - **1-Click Fast DNS Switcher**: Instant switching between Cloudflare (1.1.1.1), Quad9 (9.9.9.9), AdGuard DNS, Google (8.8.8.8), or Automatic (DHCP) with automatic cache flush.
 - **Windows Hosts Anti-Telemetry Shield**: Curated anti-telemetry & adblock shield blocking diagnostic telemetry, tracking beacons, and malware domains in `C:\Windows\System32\drivers\etc\hosts`.
 - **1-Click Network Repair & Flush**: Clears DNS cache, purges ARP neighbor tables, and re-registers network endpoints.
 - **Wake-on-LAN (WOL)**: Sends magic packets (UDP port 9) to wake remote computers or NAS units.
 
+<p align="center">
+  <img src="docs/screenshots/nettools.png" alt="Network Tools & System Repair" width="95%" style="border-radius: 6px;" />
+</p>
+
 ### 10. 📈 Persistent Trends & Time-Series History
 - **SQLite Storage**: Efficient, low-overhead time-series metrics engine.
 - **Customizable Intervals**: Analyze trends across **6h, 24h, 7d, and 30d**.
 - **Host Discovery Timeline**: Audit log of device joins and disconnections over time.
+
+<p align="center">
+  <img src="docs/screenshots/trends.png" alt="Persistent Trends & History" width="95%" style="border-radius: 6px;" />
+</p>
+
+---
+
+## 📸 More Visual Modules
+
+| Module | Description | Screenshot |
+|:---|:---|:---:|
+| **Network Topology** | Interactive physics canvas & SVG node graph linking PC, Gateway, and discovered LAN hosts. | <img src="docs/screenshots/topology.png" width="300" /> |
+| **Active Connections** | GlassWire-style per-process bandwidth tracking & 1-click Windows Defender firewall blocking. | <img src="docs/screenshots/connections.png" width="300" /> |
+| **Discovered Devices** | Live ARP table scanner with hardware vendor resolution, latency, and port audits. | <img src="docs/screenshots/devices.png" width="300" /> |
+| **Network Adapters** | Complete adapter telemetry (`ipconfig /all`) with 1-click hardware interface reset. | <img src="docs/screenshots/interfaces.png" width="300" /> |
+| **Routing Table** | Windows IPv4 kernel routing matrix with destination, netmask, gateway, and metrics. | <img src="docs/screenshots/routes.png" width="300" /> |
+| **Smart Diagnostics** | Automated 10-point health audit checking gateway, latency, DNS security, and anomalies. | <img src="docs/screenshots/diag.png" width="300" /> |
+
 
 ---
 
@@ -193,9 +251,25 @@ The output installer will be created in `dist/installer/NetVisual-v6-Setup.exe`.
 ## 🔒 Security & Port Release Guarantee
 
 - **Deterministic Port Release**: The server uses a deterministic shutdown mechanism that closes listening sockets immediately upon exit.
+- **Cross-Site Request Forgery (CSRF) & Origin Guard**: Native protection against browser-based drive-by attacks. Enforces strict `Host` validation (anti-DNS rebinding), validates `Sec-Fetch-Site` metadata, and injects ephemeral per-session CSRF tokens (`X-CSRF-Token`) on all local endpoints. External websites can never execute local network actions.
 - **Single-Instance Guard**: Attempting to launch a second instance automatically focuses the existing browser dashboard instead of failing with port conflicts.
 - **Localhost Isolation**: The HTTP server binds exclusively to `127.0.0.1`.
 - **Command Injection Firewall**: All user inputs (IPs, hostnames, ports) are strictly validated via `safety.py` before execution.
+
+---
+
+## 🛡️ Windows SmartScreen & Security Verification
+
+> [!NOTE]
+> NetVisual is a free, transparent, open-source security tool. Because it is distributed independently without a commercial Extended Validation (EV) certificate, Windows Defender SmartScreen may display a notification on the first launch stating:
+> 
+> ***"Windows protected your PC — Microsoft Defender SmartScreen prevented an unrecognized app from starting."***
+> 
+> **To launch NetVisual:**
+> 1. Click **More info**.
+> 2. Click **Run anyway**.
+> 
+> The codebase is 100% open source, auditable, and contains zero proprietary dependencies. You can inspect every line of Python code directly in this repository or run the application from source without any compiled binary (`python -m netvisual.server`).
 
 ---
 
