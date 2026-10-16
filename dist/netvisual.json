@@ -1,0 +1,19 @@
+{
+  "history": {
+    "retention_days": 30,
+    "interval_seconds": 30,
+    "max_points": 360
+  },
+  "alerts": {
+    "enabled": true,
+    "gw_down_seconds": 90,
+    "gw_latency_ms": 200,
+    "bandwidth_rx_bps": 50000000,
+    "bandwidth_tx_bps": 50000000,
+    "anomaly_z": 3.0
+  },
+  "ui": {
+    "live_refresh_ms": 2000,
+    "trends_refresh_ms": 60000
+  }
+}

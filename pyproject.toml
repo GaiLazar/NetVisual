@@ -1,0 +1,29 @@
+# NetVisual A+ v4 — project metadata (stdlib-only runtime; no install needed).
+#
+# The app itself has ZERO runtime dependencies (Python 3.10+ stdlib).
+# The entries below are OPTIONAL dev tools for building an icon / .exe.
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "netvisual"
+version = "4.0.0"
+description = "Modular, zero-dependency Windows network visualizer."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = []           # none — pure stdlib
+
+[project.optional-dependencies]
+dev = [
+    "pillow>=10",     # tools/make_icon.py
+    "pyinstaller>=6", # build the standalone .exe
+]
+
+[project.scripts]
+netvisual = "netvisual.server:main"
+
+[tool.setuptools.packages.find]
+include = ["netvisual*"]

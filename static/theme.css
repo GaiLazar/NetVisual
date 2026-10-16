@@ -1,0 +1,70 @@
+:root, [data-theme="cyber"]{
+  --bg:#0a0e17; --bg2:#0d1320; --panel:#111a2b; --panel2:#152034;
+  --border:#1e2a40; --border2:#27375a;
+  --txt:#e6edf7; --muted:#8494ad; --faint:#5a6a86;
+  --accent:#38bdf8; --accent2:#22d3ee;
+  --ok:#34d399; --warn:#fbbf24; --err:#f87171;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sans:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Hebrew,Arial,sans-serif;
+  --r:14px;
+}
+
+[data-theme="matrix"]{
+  --bg:#030c06; --bg2:#05140a; --panel:#081c0e; --panel2:#0c2614;
+  --border:#13381c; --border2:#1c4d28;
+  --txt:#dcfce7; --muted:#86efac; --faint:#4ade80;
+  --accent:#22c55e; --accent2:#4ade80;
+  --ok:#10b981; --warn:#eab308; --err:#f43f5e;
+}
+
+[data-theme="dracula"]{
+  --bg:#0c0714; --bg2:#120b20; --panel:#190e2c; --panel2:#22143b;
+  --border:#311b54; --border2:#442675;
+  --txt:#f3e8ff; --muted:#c084fc; --faint:#9333ea;
+  --accent:#c084fc; --accent2:#f472b6;
+  --ok:#2dd4bf; --warn:#fbbf24; --err:#fb7185;
+}
+
+[data-theme="oled"]{
+  --bg:#000000; --bg2:#050505; --panel:#0a0a0a; --panel2:#121212;
+  --border:#222222; --border2:#333333;
+  --txt:#ffffff; --muted:#a1a1aa; --faint:#71717a;
+  --accent:#00f0ff; --accent2:#38bdf8;
+  --ok:#00ff66; --warn:#ffd000; --err:#ff3366;
+}
+
+[data-theme="synthwave"]{
+  --bg:#0f041c; --bg2:#18082c; --panel:#240c42; --panel2:#33125d;
+  --border:#4f1885; --border2:#7425c2;
+  --txt:#ffeefc; --muted:#e096fc; --faint:#aa55f7;
+  --accent:#ff2a85; --accent2:#00f0ff;
+  --ok:#05ffa1; --warn:#ffe600; --err:#ff0055;
+}
+
+[data-theme="nord"]{
+  --bg:#1f2430; --bg2:#242936; --panel:#2e3440; --panel2:#3b4252;
+  --border:#434c5e; --border2:#4c566a;
+  --txt:#eceff4; --muted:#d8dee9; --faint:#88c0d0;
+  --accent:#88c0d0; --accent2:#81a1c1;
+  --ok:#a3be8c; --warn:#ebcb8b; --err:#bf616a;
+}
+
+[data-theme="amber"]{
+  --bg:#0d0800; --bg2:#140c00; --panel:#1f1300; --panel2:#2c1b00;
+  --border:#4a3200; --border2:#664400;
+  --txt:#fff1d6; --muted:#ffb733; --faint:#cc8800;
+  --accent:#ffb000; --accent2:#ffd043;
+  --ok:#44ff66; --warn:#ffaa00; --err:#ff3333;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--sans); background:
+    radial-gradient(1200px 600px at 80% -10%, #12305230, transparent),
+    radial-gradient(900px 500px at 10% 110%, #0e4b4b22, transparent), var(--bg);
+  color:var(--txt); line-height:1.5; padding:18px 22px 40px;
+  transition:background .3s, color .3s;
+}
+::selection{background:var(--accent);color:#04121f}
+

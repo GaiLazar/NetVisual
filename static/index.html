@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NetVisual A+ · Network Visualizer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="/static/theme.css?v=6.6" />
+  <link rel="stylesheet" href="/static/layout.css?v=6.6" />
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%93%8C%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🌐</span>
+      <div>
+        <h1>NetVisual <span class="accent">A+</span></h1>
+        <p class="sub">Live Network Intelligence · Windows Telemetry</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div class="topbar-sparkline-wrap" title="Live rolling network throughput (Cyan: Download, Green: Upload)">
+        <canvas id="topbarSparkline" width="120" height="28" style="width:120px;height:28px;border-radius:4px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.08)"></canvas>
+        <span id="topbarSparklineVal" style="font-size:11px;font-family:var(--mono);color:var(--accent);font-weight:700">0 Mbps</span>
+      </div>
+      <button class="btn" id="cmdPaletteBtn" style="padding:6px 12px;font-size:12px;display:flex;align-items:center;gap:6px" title="Open Quick Command & Action Palette (Ctrl+K)">
+        <span>⌨️</span> <b>Ctrl+K</b>
+      </button>
+      <div class="conn-status" id="connStatus"><span class="dot"></span> connecting…</div>
+      <select id="themeSelect" class="btn" style="padding:6px 10px;font-size:12px" title="Change Cyber UI Theme">
+        <option value="cyber">🌌 Cyber Cyan</option>
+        <option value="synthwave">🌆 Synthwave 80s</option>
+        <option value="matrix">🟢 Matrix Green</option>
+        <option value="dracula">🟣 Dracula Purple</option>
+        <option value="nord">❄️ Nord Arctic Ice</option>
+        <option value="amber">🟠 Tactical Amber</option>
+        <option value="oled">🌑 OLED Black</option>
+      </select>
+      <button class="btn" id="nocModeBtn" style="border-color:var(--accent);color:var(--accent)" title="Launch Full-Screen Cyber NOC Wallboard (F11)">📺 NOC View</button>
+      <button class="btn" id="hudModeBtn" title="Launch Compact Floating Desktop HUD">🪟 HUD Mode</button>
+      <button class="btn" id="healthReportBtn" title="Generate printable Network Health Audit Report">📄 Health Report</button>
+      <button class="btn" id="refreshBtn" title="Clear cache & re-probe">⟳ Refresh</button>
+      <button class="btn btn-accent" id="exportBtn">⬇ Export JSON</button>
+      <button class="btn" id="shutdownBtn" style="background:#3b1219;border-color:#7f1d1d;color:#fca5a5" title="Stop & Exit NetVisual A+">🛑 Exit App</button>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <!-- CYBER SIDEBAR DOCK -->
+    <aside class="cyber-sidebar" id="cyberSidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">⚡ NetVisual Hub</span>
+        <button class="sidebar-toggle-btn" id="sidebarToggleBtn" title="Toggle Sidebar (Collapse / Expand)">◀</button>
+      </div>
+      <nav class="sidebar-nav" id="tabs">
+        <div class="sidebar-nav-group">
+          <div class="sidebar-cat-title">📊 MONITOR & MAPS</div>
+          <button class="tab sidebar-tab-btn active" data-tab="live"><span class="sidebar-tab-icon">📈</span><span class="sidebar-tab-label">Live Monitor</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="trends"><span class="sidebar-tab-icon">📊</span><span class="sidebar-tab-label">Trends</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="topology"><span class="sidebar-tab-icon">🌐</span><span class="sidebar-tab-label">Topology</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="geomap"><span class="sidebar-tab-icon">🗺️</span><span class="sidebar-tab-label">World Map</span></button>
+        </div>
+        <div class="sidebar-nav-group">
+          <div class="sidebar-cat-title">🛡️ CYBER & ANALYZER</div>
+          <button class="tab sidebar-tab-btn" data-tab="security"><span class="sidebar-tab-icon">🛡️</span><span class="sidebar-tab-label">Security</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="ai"><span class="sidebar-tab-icon">🤖</span><span class="sidebar-tab-label">AI Assistant</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="sniffer"><span class="sidebar-tab-icon">🔍</span><span class="sidebar-tab-label">Packet Sniffer</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="speedtest"><span class="sidebar-tab-icon">⚡</span><span class="sidebar-tab-label">Speed Test</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="wifi"><span class="sidebar-tab-icon">📶</span><span class="sidebar-tab-label">Wi-Fi</span></button>
+        </div>
+        <div class="sidebar-nav-group">
+          <div class="sidebar-cat-title">⚙️ CONTROL & TOOLS</div>
+          <button class="tab sidebar-tab-btn" data-tab="netprofiles"><span class="sidebar-tab-icon">📁</span><span class="sidebar-tab-label">Net Profiles</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="nettools"><span class="sidebar-tab-icon">🧰</span><span class="sidebar-tab-label">Network Tools</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="devices"><span class="sidebar-tab-icon">💻</span><span class="sidebar-tab-label">Devices</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="connections"><span class="sidebar-tab-icon">🔌</span><span class="sidebar-tab-label">Connections</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="routes"><span class="sidebar-tab-icon">🔀</span><span class="sidebar-tab-label">Routes</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="interfaces"><span class="sidebar-tab-icon">🖧</span><span class="sidebar-tab-label">Interfaces</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="diag"><span class="sidebar-tab-icon">🩺</span><span class="sidebar-tab-label">Diagnostics</span></button>
+          <button class="tab sidebar-tab-btn" data-tab="raw"><span class="sidebar-tab-icon">💻</span><span class="sidebar-tab-label">CMD Console</span></button>
+        </div>
+      </nav>
+    </aside>
+
+    <div class="main-viewport">
+      <section class="overview" id="overview">
+        <div class="ov-left">
+          <div class="ov-ip-pill">
+            <span class="ov-ip-lbl">IP</span>
+            <span class="ov-ip" id="ovIp">—</span>
+          </div>
+          <div class="ov-meta-row">
+            <span class="ov-tag" title="Gateway"><i class="tag-ic">🌐</i> GW: <b id="ovGw">—</b></span>
+            <span class="ov-tag" title="Subnet"><i class="tag-ic">🔀</i> <span id="ovSub" class="mono">—</span></span>
+            <span class="ov-tag" title="Hostname"><i class="tag-ic">💻</i> <span id="ovHost">—</span></span>
+            <span class="ov-tag" title="Network Adapter"><i class="tag-ic">🔌</i> <span id="ovAdapter">—</span></span>
+            <span class="ov-tag" title="MAC Address"><i class="tag-ic">🏷️</i> <span id="ovMac" class="mono">—</span></span>
+          </div>
+        </div>
+
+        <div class="ov-center">
+          <div class="ov-alert-pill ok" id="ovAlertPill">
+            <span class="ov-pulse-dot"></span>
+            <span id="ovAlertText">System Status: All Normal · 0 Threats</span>
+          </div>
+        </div>
+
+        <div class="ov-kpis">
+          <div class="kpi-capsule" title="Network Interfaces"><b id="kIfaces">–</b><span>Ifaces</span></div>
+          <div class="kpi-capsule" title="Subnet Neighbors"><b id="kNeighbors">–</b><span>Neighbors</span></div>
+          <div class="kpi-capsule" title="Routing Table Entries"><b id="kRoutes">–</b><span>Routes</span></div>
+          <div class="kpi-capsule" title="Total Active Sockets"><b id="kConns">–</b><span>Sockets</span></div>
+          <div class="kpi-capsule kpi-ok" title="Established TCP Sockets"><b id="kTcp">–</b><span>TCP</span></div>
+        </div>
+      </section>
+
+      <!-- SMART AI NETWORK EXPLAINER -->
+      <div class="ai-explainer-banner" id="explainerBanner">
+        <div class="ai-exp-head">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="ai-exp-badge">🤖 Smart AI Diagnostics</span>
+            <span class="ai-exp-summary" id="aiExpSummary">Analyzing network health & telemetry…</span>
+          </div>
+          <div id="aiExpScore" class="badge b-est" style="font-size:13px;font-family:var(--mono)">100 / 100</div>
+        </div>
+        <div class="ai-exp-chips" id="aiExpChips">
+          <!-- Generated dynamically by app.js -->
+        </div>
+      </div>
+
+      <main>
+        <!-- LIVE -->
+        <section class="panel active" id="panel-live">
+          <div class="panel-head">
+            <h2>Live Network Monitor</h2>
+            <p>Bandwidth · top talkers · activity feed · auto-refresh every 2s</p>
+          </div>
+          <div class="live-grid">
+            <div class="live-card">
+              <h3>Bandwidth Speedometers</h3>
+              <!-- RADIAL GAUGES -->
+              <div class="radial-gauges-wrapper">
+                <div class="radial-gauge-card">
+                  <svg class="radial-gauge-svg" id="gaugeRxSvg" viewBox="0 0 160 120">
+                    <path class="gauge-bg-arc" d="M 20 100 A 60 60 0 0 1 140 100" />
+                    <path class="gauge-fill-arc gauge-fill-rx" id="gaugeRxPath" d="M 20 100 A 60 60 0 0 1 140 100" stroke-dasharray="188.5" stroke-dashoffset="188.5" />
+                    <text class="gauge-center-val" id="gaugeRxVal" x="80" y="85">0</text>
+                    <text class="gauge-center-unit" id="gaugeRxUnit" x="80" y="102">KB/s</text>
+                  </svg>
+                  <span class="gauge-sub-lbl" style="color:var(--accent)">⬇ Download Rate</span>
+                </div>
+                <div class="radial-gauge-card">
+                  <svg class="radial-gauge-svg" id="gaugeTxSvg" viewBox="0 0 160 120">
+                    <path class="gauge-bg-arc" d="M 20 100 A 60 60 0 0 1 140 100" />
+                    <path class="gauge-fill-arc gauge-fill-tx" id="gaugeTxPath" d="M 20 100 A 60 60 0 0 1 140 100" stroke-dasharray="188.5" stroke-dashoffset="188.5" />
+                    <text class="gauge-center-val" id="gaugeTxVal" x="80" y="85">0</text>
+                    <text class="gauge-center-unit" id="gaugeTxUnit" x="80" y="102">KB/s</text>
+                  </svg>
+                  <span class="gauge-sub-lbl" style="color:var(--ok)">⬆ Upload Rate</span>
+                </div>
+              </div>
+              <div class="bw-reads">
+                <div class="bw-read"><span class="bw-lbl">RX ↓</span><b id="bwRx">0</b><span class="bw-unit">B/s</span></div>
+                <div class="bw-read"><span class="bw-lbl">TX ↑</span><b id="bwTx">0</b><span class="bw-unit">B/s</span></div>
+              </div>
+          <svg id="bwChart" class="bw-chart" viewBox="0 0 400 90" preserveAspectRatio="none"></svg>
+          <div class="bw-stats" id="bwStats">
+            <span class="bw-stat"><i class="lg rx"></i>peak <b id="bwRxPeak">0</b></span>
+            <span class="bw-stat"><i class="lg tx"></i>peak <b id="bwTxPeak">0</b></span>
+            <span class="bw-stat">avg ↓ <b id="bwRxAvg">0</b> · ↑ <b id="bwTxAvg">0</b></span>
+          </div>
+          <div class="bw-totals">
+            <span>↓ <span id="bwRxTot">0</span> B</span>
+            <span>↑ <span id="bwTxTot">0</span> B</span>
+          </div>
+        </div>
+        <div class="live-card">
+          <h3>Gateway Latency <span class="muted">(ping · auto-refresh 3s)</span></h3>
+          <div class="bw-reads">
+            <div class="bw-read"><span class="bw-lbl">last</span><b id="latMs">–</b><span class="bw-unit">ms</span></div>
+            <div class="bw-read"><span class="bw-lbl">avg</span><b id="latAvg">–</b><span class="bw-unit">ms</span></div>
+            <div class="bw-read"><span class="bw-lbl">gw</span><b id="latGw" style="font-size:16px">–</b><span class="bw-unit"></span></div>
+          </div>
+          <svg id="latChart" class="bw-chart lat-chart" viewBox="0 0 400 90" preserveAspectRatio="none"></svg>
+          <div class="bw-totals">
+            <span id="latState">collecting…</span>
+            <span id="latUp">up 0/0</span>
+          </div>
+        </div>
+        <div class="live-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <h3 style="margin:0">Global Services Latency</h3>
+            <button class="btn" id="refreshSvcLatBtn" style="padding:2px 6px;font-size:10px">⟳ Check</button>
+          </div>
+          <div id="svcLatencyMatrix" style="display:flex;flex-direction:column;gap:6px">
+            <span class="muted">Click check to test global service ping...</span>
+          </div>
+        </div>
+        <div class="live-card">
+          <h3>Per-Process Bandwidth <span class="muted">(Ranked)</span></h3>
+          <ol class="talkers" id="talkers"><li class="muted">loading…</li></ol>
+        </div>
+        <div class="live-card live-wide">
+          <h3>Who's talking to me <span class="muted">(remote peers by established sockets)</span></h3>
+          <ul class="peers" id="peersList"><li class="muted">loading…</li></ul>
+        </div>
+        <div class="live-card live-wide">
+          <h3>Activity Feed</h3>
+          <ul class="activity" id="activityList"><li class="muted">no changes detected yet…</li></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRENDS -->
+    <section class="panel" id="panel-trends">
+      <div class="panel-head">
+        <div>
+          <h2>Network Trends</h2>
+          <p>Persistent history · sampled every <span id="trInterval">30s</span> · retained <span id="trRetention">30</span> days · stored across restarts</p>
+        </div>
+        <div class="tr-ranges" id="trRanges">
+          <button class="tr-range active" data-range="6h">6h</button>
+          <button class="tr-range" data-range="24h">24h</button>
+          <button class="tr-range" data-range="7d">7d</button>
+          <button class="tr-range" data-range="30d">30d</button>
+        </div>
+      </div>
+      <div class="tr-kpis" id="trKpis"></div>
+      <div class="tr-charts">
+        <div class="tr-card">
+          <h3>Bandwidth <span class="muted">↓ RX · ↑ TX (rate)</span></h3>
+          <svg id="trBwChart" class="tr-chart" viewBox="0 0 760 200" preserveAspectRatio="none"></svg>
+          <div class="tr-legend"><span><i class="lg rx"></i> RX ↓</span><span><i class="lg tx"></i> TX ↑</span></div>
+        </div>
+        <div class="tr-card">
+          <h3>Gateway Latency <span class="muted">ping ms (drops = gap)</span></h3>
+          <svg id="trLatChart" class="tr-chart" viewBox="0 0 760 200" preserveAspectRatio="none"></svg>
+          <div class="tr-legend"><span><i class="lg lat"></i> ms</span></div>
+        </div>
+        <div class="tr-card">
+          <h3>Discovered Devices <span class="muted">host count over time</span></h3>
+          <svg id="trDevChart" class="tr-chart" viewBox="0 0 760 200" preserveAspectRatio="none"></svg>
+          <div class="tr-legend"><span><i class="lg dev"></i> devices</span></div>
+        </div>
+        <div class="tr-card">
+          <h3>Active Connections <span class="muted">TCP sockets over time</span></h3>
+          <svg id="trConnChart" class="tr-chart" viewBox="0 0 760 200" preserveAspectRatio="none"></svg>
+          <div class="tr-legend"><span><i class="lg conn"></i> connections</span></div>
+        </div>
+      </div>
+
+      <!-- Stage-1: insights beyond raw trends (status, alerts, devices, baseline, anomaly) -->
+      <div class="s1-section">
+        <div class="s1-head">
+          <h3>Insights <span class="muted">status · alerts · device changes · baselines · anomaly</span></h3>
+          <span class="s1-note" id="trS1Note">for the selected window</span>
+        </div>
+        <div class="s1-grid">
+          <div class="s1-card" id="trAlertCard">
+            <div class="s1-card-head"><h4>Active Alerts</h4><span class="s1-badge" id="trAlertCount">…</span></div>
+            <div class="s1-list" id="trAlerts"><span class="muted">loading…</span></div>
+          </div>
+          <div class="s1-card" id="trStatusCard">
+            <div class="s1-card-head"><h4>Gateway Status</h4><span class="s1-badge" id="trStatusUp">…</span></div>
+            <svg id="trStatusTimeline" class="s1-timeline" viewBox="0 0 760 46" preserveAspectRatio="none"></svg>
+            <div class="s1-sub" id="trStatusSub"></div>
+          </div>
+          <div class="s1-card" id="trAnomalyCard">
+            <div class="s1-card-head"><h4>RX Anomaly</h4><span class="s1-badge" id="trAnomalyBadge">…</span></div>
+            <div class="s1-sub" id="trAnomalyDetail"></div>
+          </div>
+          <div class="s1-card" id="trDevCard">
+            <div class="s1-card-head"><h4>Device Changes</h4><span class="s1-badge" id="trDevCount">…</span></div>
+            <div class="s1-list s1-scroll" id="trDevEvents"><span class="muted">loading…</span></div>
+          </div>
+          <div class="s1-card s1-wide" id="trBaselineCard">
+            <div class="s1-card-head"><h4>RX Baseline by Hour <span class="muted">avg ↓/s per hour-of-day</span></h4></div>
+            <div class="s1-bars" id="trBaselineBars"><span class="muted">loading…</span></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="tr-empty" id="trEmpty" hidden>No history yet for this window — the store fills as the app runs (one sample per interval).</p>
+    </section>
+
+    <!-- TOPOLOGY -->
+    <section class="panel" id="panel-topology">
+      <div class="panel-head">
+        <div>
+          <h2>Network Topology</h2>
+          <p>Live interactive map · this PC → gateway → discovered neighbors</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+          <button class="btn btn-accent" id="topoViewPhysicsBtn">🌊 Physics Canvas (Particles)</button>
+          <button class="btn" id="topoViewSvgBtn">📊 Classic SVG</button>
+          <button class="btn" id="topoSvgBtn" title="Download topology as SVG">⬇ Export SVG</button>
+        </div>
+      </div>
+      <div class="topo-wrap">
+        <div id="topoHudCard" class="topo-hud-card" style="display:none"></div>
+        <canvas id="topoCanvas" class="topo-canvas" width="920" height="460" style="display:block;width:100%;height:460px;background:rgba(0,0,0,0.2);border-radius:10px;border:1px solid var(--border)"></canvas>
+        <svg id="topoSvg" class="topo-svg" xmlns="http://www.w3.org/2000/svg" style="display:none"></svg>
+        <div class="topo-legend">
+          <span><i class="lg this"></i> This PC</span>
+          <span><i class="lg gw"></i> Gateway</span>
+          <span><i class="lg dev"></i> Neighbor</span>
+          <span style="margin-left:auto;color:var(--muted);font-size:11px">💡 Drag nodes to rearrange · Scroll to zoom</span>
+        </div>
+      </div>
+      <div class="topo-stats" id="topoStats"></div>
+    </section>
+
+    <!-- WORLD GEO MAP -->
+    <section class="panel" id="panel-geomap">
+      <div class="panel-head">
+        <div>
+          <h2>World Map — Global Traffic & Threat Radar</h2>
+          <p>Live geographic routing · global servers, cloud CDNs & security intelligence communicating with this PC</p>
+        </div>
+        <div class="geomap-actions" style="display:flex;gap:8px">
+          <button class="btn" id="toggleLayersControlBtn" style="font-size:12px">🎛️ Map Layers</button>
+          <button class="btn btn-accent" id="refreshGeoBtn" title="Re-scan active external connections">⟳ Scan World Connections</button>
+        </div>
+      </div>
+      
+      <div class="tr-kpis" id="geoKpis">
+        <div class="tr-kpi"><b id="geoDestCount">0</b><span>Remote Servers</span><small>unique global IPs</small></div>
+        <div class="tr-kpi"><b id="geoCountryCount">0</b><span>Countries</span><small id="geoTopCountry">Top: —</small></div>
+        <div class="tr-kpi"><b id="geoTopCloud" style="font-size:16px">—</b><span>Top Cloud / CDN</span><small id="geoTopCloudSub">infrastructure</small></div>
+        <div class="tr-kpi"><b id="geoRiskRating" style="font-size:16px;color:#34d399">CLEAN</b><span>Threat Posture</span><small id="geoTopProcess">Top App: —</small></div>
+        <div class="tr-kpi"><b id="geoOriginCity" style="font-size:16px">—</b><span>Your Location</span><small id="geoOriginIp">detecting…</small></div>
+      </div>
+
+      <div class="dev-filters" style="margin-top:14px;margin-bottom:14px">
+        <input type="search" id="geoSearch" class="dev-search" placeholder="🔎 filter map by IP, country, city, ISP, process, cloud provider…" />
+        <select id="geoProcessFilter" class="dev-select" title="Filter by process">
+          <option value="ALL">All Processes</option>
+        </select>
+        <select id="geoCloudFilter" class="dev-select" title="Filter by Cloud / CDN">
+          <option value="ALL">All Cloud Providers</option>
+          <option value="Cloudflare">Cloudflare</option>
+          <option value="AWS">AWS (Amazon)</option>
+          <option value="Google Cloud">Google Cloud</option>
+          <option value="Azure">Microsoft Azure</option>
+          <option value="Akamai">Akamai</option>
+          <option value="Fastly">Fastly</option>
+          <option value="DigitalOcean">DigitalOcean</option>
+          <option value="Hetzner">Hetzner / OVH</option>
+        </select>
+        <select id="geoStyleFilter" class="dev-select" title="Map Theme">
+          <option value="cyber">🌙 Cyber Dark (100% Free · No API Key)</option>
+          <option value="standard">🗺 Standard Streets (100% Free · No API Key)</option>
+          <option value="satellite">🛰 Satellite (100% Free · No API Key)</option>
+          <option value="osm">🌍 OpenStreetMap (100% Free · No API Key)</option>
+        </select>
+        <button class="btn" id="geoResetViewBtn" title="Reset map view to center">🎯 Center Map</button>
+      </div>
+
+      <div class="geomap-wrap" id="geomapWrap" style="position:relative">
+        <div id="geomapCanvas" class="geomap-canvas"></div>
+
+        <!-- Floating Glassmorphism Map Layers Control Panel -->
+        <div class="geomap-layers-panel" id="geomapLayersControl">
+          <div class="geomap-layers-head">
+            <span style="font-weight:700;font-size:12px;color:var(--accent);display:flex;align-items:center;gap:6px">
+              🎛️ Map Layers
+            </span>
+            <button id="closeLayersPanelBtn" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px">✕</button>
+          </div>
+          <div class="geomap-layers-body">
+            <label class="geomap-layer-toggle">
+              <input type="checkbox" id="layerFlowBeams" checked />
+              <span class="geomap-layer-label">
+                <b>⚡ Live Flow Beams</b>
+                <small>Animated light pulses along flight paths</small>
+              </span>
+            </label>
+            <label class="geomap-layer-toggle">
+              <input type="checkbox" id="layerCyberRisk" checked />
+              <span class="geomap-layer-label">
+                <b>🛡️ Cyber Risk & Security</b>
+                <small>Color nodes by risk (Green/Yellow/Red)</small>
+              </span>
+            </label>
+            <label class="geomap-layer-toggle">
+              <input type="checkbox" id="layerCloudBadges" checked />
+              <span class="geomap-layer-label">
+                <b>☁️ Cloud & CDN Badges</b>
+                <small>Branded markers for AWS/Cloudflare/GCP</small>
+              </span>
+            </label>
+            <label class="geomap-layer-toggle">
+              <input type="checkbox" id="layerCountryBubbles" checked />
+              <span class="geomap-layer-label">
+                <b>📊 Country Traffic Bubbles</b>
+                <small>Proportional glowing circles by country volume</small>
+              </span>
+            </label>
+            <label class="geomap-layer-toggle">
+              <input type="checkbox" id="layerLatencyRings" checked />
+              <span class="geomap-layer-label">
+                <b>⏱️ Global Latency Rings</b>
+                <small>Concentric ping & distance radar bands</small>
+              </span>
+            </label>
+            <label class="geomap-layer-toggle">
+              <input type="checkbox" id="layerDayNight" />
+              <span class="geomap-layer-label">
+                <b>🌓 Day / Night Shadow</b>
+                <small>Real-time sunlight & night terminator</small>
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide-Over Host Deep Dive Drawer -->
+      <div class="geo-drawer" id="geoEndpointDrawer" hidden>
+        <div class="geo-drawer-head">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="drawerHostFlag" style="font-size:22px">🌍</span>
+            <div>
+              <h3 id="drawerHostIp" style="font-family:var(--mono);margin:0;font-size:15px">0.0.0.0</h3>
+              <span class="muted" id="drawerHostLocation" style="font-size:11.5px">—</span>
+            </div>
+          </div>
+          <button class="btn" id="closeGeoDrawerBtn" style="padding:2px 8px;font-size:12px">✕</button>
+        </div>
+        <div class="geo-drawer-body">
+          <!-- ISP & Cloud -->
+          <div class="s1-card">
+            <div class="s1-card-head">
+              <h4>🏢 Cloud & ISP Infrastructure</h4>
+              <span class="s1-badge ok" id="drawerHostCloudBadge">CDN</span>
+            </div>
+            <div style="font-size:12.5px;line-height:1.6">
+              <div><span class="muted">ISP / Org:</span> <b id="drawerHostIsp">—</b></div>
+              <div><span class="muted">Category:</span> <span id="drawerHostCategory">—</span></div>
+              <div><span class="muted">Coordinates:</span> <span class="mono" id="drawerHostCoords">—</span></div>
+            </div>
+          </div>
+
+          <!-- Security & Ports -->
+          <div class="s1-card">
+            <div class="s1-card-head">
+              <h4>🛡️ Cyber Risk & Sockets</h4>
+              <span class="badge" id="drawerHostRiskBadge">SAFE</span>
+            </div>
+            <div style="font-size:12.5px;line-height:1.6">
+              <div><span class="muted">Connected Ports:</span> <span class="mono" id="drawerHostPorts">—</span></div>
+              <div><span class="muted">Active Sockets:</span> <b id="drawerHostSockets">0</b></div>
+              <div><span class="muted">Established:</span> <b id="drawerHostEstablished" style="color:var(--accent)">0</b></div>
+            </div>
+          </div>
+
+          <!-- Local Processes -->
+          <div class="s1-card">
+            <div class="s1-card-head">
+              <h4>📦 Connected Local Applications</h4>
+            </div>
+            <div id="drawerHostProcesses" style="display:flex;gap:6px;flex-wrap:wrap">
+              <!-- Filled dynamically -->
+            </div>
+          </div>
+
+          <!-- Interactive Network Diagnostics -->
+          <div class="s1-card">
+            <div class="s1-card-head">
+              <h4>⚡ Live Diagnostics & Hop Route</h4>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:8px">
+              <button class="btn btn-accent" id="drawerPingBtn" style="padding:4px 10px;font-size:12px">⚡ Test Ping / RTT</button>
+              <button class="btn" id="drawerTraceBtn" style="padding:4px 10px;font-size:12px">🛣️ Run Live Traceroute</button>
+            </div>
+            <div id="drawerDiagOutput" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:11.5px;min-height:40px;max-height:140px;overflow-y:auto;color:var(--txt)">
+              <span class="muted">Click Test Ping or Run Traceroute to diagnose path to this global endpoint…</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-head" style="margin-top:24px;margin-bottom:10px">
+        <h3>Connected Global Endpoints</h3>
+        <span class="muted" id="geoTableCount">0 endpoints</span>
+      </div>
+      <div class="table-wrap">
+        <table class="tbl" id="geoTable">
+          <thead>
+            <tr>
+              <th>Remote IP</th>
+              <th>Location</th>
+              <th>Cloud / ISP</th>
+              <th>Category</th>
+              <th>Process</th>
+              <th>Remote Ports</th>
+              <th>Established</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="geoTableBody">
+            <tr><td colspan="8" class="muted" style="text-align:center;padding:24px">Loading active global connections…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECURITY INSPECTOR -->
+    <section class="panel" id="panel-security">
+      <div class="panel-head">
+        <div>
+          <h2>Threat & Security Inspector</h2>
+          <p>Active socket vulnerability analysis · DNS leak detection · risky ports · WHOIS lookup</p>
+        </div>
+        <div class="dev-actions">
+          <button class="btn btn-accent" id="runSecAuditBtn">🛡️ Run Threat Audit</button>
+        </div>
+      </div>
+
+      <div class="tr-kpis" id="secKpis">
+        <div class="tr-kpi"><b id="secScore" class="kpi-ok" style="font-size:24px">A+</b><span>Security Grade</span><small id="secScoreSub">Posture Score: 100/100</small></div>
+        <div class="tr-kpi"><b id="secThreatCount">0</b><span>Risky Ports/Sockets</span><small id="secThreatSub">active connections</small></div>
+        <div class="tr-kpi"><b id="secDnsStatus" style="font-size:16px">Secure</b><span>DNS Leak Posture</span><small id="secDnsSub">upstream encrypted</small></div>
+        <div class="tr-kpi"><b id="secTotalSockets">0</b><span>Total Sockets</span><small>inspected</small></div>
+      </div>
+
+      <div class="s1-grid" style="margin-top:16px">
+        <!-- Risky Sockets & Threat Feed -->
+        <div class="s1-card s1-wide">
+          <div class="s1-card-head">
+            <h4>🚨 Threat Intelligence & Risky Port Sockets</h4>
+            <span class="s1-badge ok" id="secThreatBadge">0 Threats</span>
+          </div>
+          <div class="s1-list" id="secThreatList">
+            <div class="s1-item" style="justify-content:center"><span class="muted">All clear — no insecure ports or active threats detected</span></div>
+          </div>
+        </div>
+
+        <!-- DNS Leak & Upstream -->
+        <div class="s1-card">
+          <div class="s1-card-head">
+            <h4>🌐 DNS Leak & Upstream Resolvers</h4>
+            <span class="s1-badge ok" id="secDnsBadge">Active</span>
+          </div>
+          <div id="secDnsList" class="s1-list">
+            <span class="muted">Auditing DNS servers…</span>
+          </div>
+          <p class="s1-note" id="secDnsRec" style="margin-top:6px"></p>
+        </div>
+
+        <!-- WHOIS / IP Reputation Lookup -->
+        <div class="s1-card">
+          <div class="s1-card-head">
+            <h4>🔍 Quick WHOIS & IP Reputation</h4>
+          </div>
+          <div style="display:flex;gap:8px">
+            <input type="search" id="whoisInput" class="dev-search" placeholder="Enter IP (e.g. 1.1.1.1 or 8.8.8.8)" style="flex:1" />
+            <button class="btn" id="whoisBtn">Lookup</button>
+            <button class="btn btn-accent" id="threatIntelBtn">Threat Intel</button>
+          </div>
+          <div id="whoisResult" style="margin-top:8px;font-size:12.5px;color:var(--muted)">
+            Enter a public IP above to inspect ownership, ASN, hosting provider, or check Threat Intelligence (AlienVault OTX).
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SPEED TEST & QOS -->
+    <section class="panel" id="panel-speedtest">
+      <div class="panel-head">
+        <div>
+          <h2>Speed Test & Quality of Service (QoS)</h2>
+          <p>Real-time multi-stream throughput · Latency · Jitter · Packet loss analysis</p>
+        </div>
+        <div>
+          <button class="btn btn-accent" id="startSpeedtestBtn" style="font-size:14px;padding:8px 18px">⚡ Start Speed Test</button>
+        </div>
+      </div>
+
+      <div class="speed-dashboard">
+        <div class="speed-gauge-wrap">
+          <svg class="speed-gauge-svg" viewBox="0 0 300 180" id="speedGauge">
+            <path d="M 30 150 A 120 120 0 0 1 270 150" fill="none" stroke="#162238" stroke-width="18" stroke-linecap="round"/>
+            <path d="M 30 150 A 120 120 0 0 1 270 150" id="speedGaugeFill" fill="none" stroke="url(#speedGrad)" stroke-width="18" stroke-dasharray="377" stroke-dashoffset="377" stroke-linecap="round"/>
+            <defs>
+              <linearGradient id="speedGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#00f0ff" />
+                <stop offset="50%" stop-color="#34d399" />
+                <stop offset="100%" stop-color="#fbbf24" />
+              </linearGradient>
+            </defs>
+            <text x="150" y="125" text-anchor="middle" class="speed-gauge-val" id="speedGaugeText">0.0</text>
+            <text x="150" y="145" text-anchor="middle" class="speed-gauge-unit" id="speedGaugeUnit">Mbps</text>
+            <text x="150" y="168" text-anchor="middle" class="speed-gauge-stage" id="speedGaugeStage">Ready</text>
+          </svg>
+          <div class="speed-progress-bar" id="speedProgressBar" hidden>
+            <div class="speed-progress-fill" id="speedProgressFill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="speed-kpis-grid">
+          <div class="speed-card">
+            <span class="speed-lbl">⬇ Download</span>
+            <b class="speed-num kpi-ok" id="spDownload">—</b>
+            <span class="speed-sub">Megabits per second</span>
+          </div>
+          <div class="speed-card">
+            <span class="speed-lbl">⬆ Upload</span>
+            <b class="speed-num" id="spUpload" style="color:#a78bfa">—</b>
+            <span class="speed-sub">Megabits per second</span>
+          </div>
+          <div class="speed-card">
+            <span class="speed-lbl">⏱ Ping Latency</span>
+            <b class="speed-num" id="spPing" style="color:#38bdf8">—</b>
+            <span class="speed-sub">round-trip time</span>
+          </div>
+          <div class="speed-card">
+            <span class="speed-lbl">〰 Jitter & Loss</span>
+            <b class="speed-num" id="spJitter">—</b>
+            <span class="speed-sub" id="spLoss">0% packet loss</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WI-FI ANALYZER -->
+    <section class="panel" id="panel-wifi">
+      <div class="panel-head">
+        <div>
+          <h2>Wi-Fi Analyzer & Channel Optimizer</h2>
+          <p>Local wireless adapter metrics · nearby AP spectrum · channel congestion graph</p>
+        </div>
+        <div>
+          <button class="btn btn-accent" id="scanWifiBtn">📶 Rescan Wireless</button>
+        </div>
+      </div>
+
+      <div class="wifi-grid">
+        <!-- Connected AP Details -->
+        <div class="s1-card">
+          <div class="s1-card-head">
+            <h4>📡 Current Wi-Fi Connection</h4>
+            <span class="s1-badge ok" id="wifiStatusBadge">Connected</span>
+          </div>
+          <div id="wifiConnectedDetails" class="s1-list">
+            <span class="muted">Scanning Wi-Fi interface…</span>
+          </div>
+        </div>
+
+        <!-- Channel Recommendations -->
+        <div class="s1-card">
+          <div class="s1-card-head">
+            <h4>💡 Channel Spectrum Advisor</h4>
+            <span class="s1-badge" id="wifiRecBadge">Optimal</span>
+          </div>
+          <div id="wifiAdvisorTip" style="font-size:13.5px;color:var(--txt);line-height:1.6">
+            Evaluating surrounding wireless congestion…
+          </div>
+          <div style="margin-top:12px;display:flex;gap:10px">
+            <div class="tr-kpi" style="flex:1"><b id="wifiBest24" class="kpi-ok">—</b><span>Best 2.4 GHz</span></div>
+            <div class="tr-kpi" style="flex:1"><b id="wifiBest5" class="kpi-ok">—</b><span>Best 5 GHz</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel Spectrum Congestion -->
+      <div class="s1-card s1-wide" style="margin-top:16px">
+        <h4>📊 Surrounding Spectrum Utilization</h4>
+        <p class="s1-note" style="margin-bottom:10px">Number of overlapping access points broadcasting on each channel</p>
+        <div id="wifiChannelsWrap" style="display:flex;flex-direction:column;gap:12px">
+          <!-- 2.4 GHz -->
+          <div>
+            <span class="lbl" style="font-size:11px">2.4 GHz Band (Channels 1 - 11)</span>
+            <div class="s1-bars" id="wifiBars24" style="height:80px"></div>
+          </div>
+          <!-- 5 GHz -->
+          <div>
+            <span class="lbl" style="font-size:11px">5 GHz Band (Channels 36 - 165)</span>
+            <div class="s1-bars" id="wifiBars5" style="height:80px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nearby AP List -->
+      <div class="panel-head" style="margin-top:20px;margin-bottom:10px">
+        <h3>Nearby Wireless Access Points</h3>
+        <span class="muted" id="wifiNearbyCount">0 networks</span>
+      </div>
+      <div class="table-wrap">
+        <table class="tbl" id="wifiTable">
+          <thead>
+            <tr>
+              <th>SSID (Network)</th>
+              <th>Signal</th>
+              <th>Channel</th>
+              <th>Band</th>
+              <th>Security</th>
+              <th>Radio Type</th>
+              <th>BSSID (MAC)</th>
+            </tr>
+          </thead>
+          <tbody id="wifiTableBody">
+            <tr><td colspan="7" class="muted" style="text-align:center;padding:20px">No nearby wireless networks scanned yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- NET PROFILES (Advanced Visual Profile Suite) -->
+    <section class="panel" id="panel-netprofiles">
+      <div class="panel-head">
+        <div>
+          <h2>Advanced Network Profile Manager</h2>
+          <p>Create, customize, save, and switch between multi-adapter network configurations</p>
+        </div>
+        <div class="dev-actions">
+          <button class="btn btn-accent" id="profNewTabBtn">➕ New Profile</button>
+        </div>
+      </div>
+
+      <!-- Profile Tabs Row (#1 Ethernet, #2 Wi-Fi, ...) -->
+      <div class="profile-tabs-bar" id="profileTabsBar">
+        <!-- Populated dynamically by app.js -->
+      </div>
+
+      <!-- Main Profile Card Frame -->
+      <div class="netsetman-card" id="netsetmanCard">
+        <!-- Card Header: Adapter Selector -->
+        <div class="netsetman-head">
+          <div style="display:flex;align-items:center;gap:12px;flex:1">
+            <span style="font-size:13.5px;font-weight:700;color:var(--txt)">Network Adapter:</span>
+            <select id="profAdapterSelect" class="dev-select" style="min-width:260px;font-weight:600">
+              <!-- Populated dynamically with active network interfaces -->
+            </select>
+            <span class="badge b-est" id="profAdapterStatusBadge">🟢 Active</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="muted" style="font-size:12.5px">Profile Name:</span>
+            <input type="text" id="profNameInput" class="dev-search" style="font-weight:700;width:200px" value="#1 Ethernet" />
+          </div>
+        </div>
+
+        <!-- 2-Column Grid Layout (Matching User Image) -->
+        <div class="netsetman-grid">
+          <!-- Column 1: IP & DNS Settings -->
+          <div class="netsetman-col">
+            <!-- Box 1: IP & Gateway -->
+            <div class="netsetman-box">
+              <div class="netsetman-box-title">🌐 IP & Gateway Configuration</div>
+              <label class="prof-radio-label">
+                <input type="radio" name="profIpRadio" value="dhcp" id="profIpRadioDhcp" checked />
+                <span>Obtain an IP address automatically (DHCP)</span>
+              </label>
+              <label class="prof-radio-label">
+                <input type="radio" name="profIpRadio" value="static" id="profIpRadioStatic" />
+                <span>Use the following IP address (Static IP)</span>
+              </label>
+              <div class="prof-sub-fields" id="profStaticFields" style="opacity:0.4;pointer-events:none">
+                <div class="prof-field-row">
+                  <label>IP Address:</label>
+                  <input type="text" id="profIpAddrInput" class="mono dev-search" placeholder="192.168.1.55" />
+                </div>
+                <div class="prof-field-row">
+                  <label>Subnet Mask:</label>
+                  <input type="text" id="profMaskInput" class="mono dev-search" placeholder="255.255.255.0" value="255.255.255.0" />
+                </div>
+                <div class="prof-field-row">
+                  <label>Default Gateway:</label>
+                  <input type="text" id="profGwInput" class="mono dev-search" placeholder="192.168.1.1" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Box 2: DNS Server -->
+            <div class="netsetman-box">
+              <div class="netsetman-box-title">⚡ DNS Server Addresses</div>
+              <label class="prof-radio-label">
+                <input type="radio" name="profDnsRadio" value="dhcp" id="profDnsRadioDhcp" checked />
+                <span>Obtain DNS server address automatically (DHCP)</span>
+              </label>
+              <label class="prof-radio-label">
+                <input type="radio" name="profDnsRadio" value="manual" id="profDnsRadioManual" />
+                <span>Use the following DNS server addresses:</span>
+              </label>
+              <div class="prof-sub-fields" id="profManualDnsFields" style="opacity:0.4;pointer-events:none">
+                <div class="prof-field-row">
+                  <label>Preferred DNS:</label>
+                  <input type="text" id="profPrimaryDnsInput" class="mono dev-search" placeholder="1.1.1.1" />
+                </div>
+                <div class="prof-field-row">
+                  <label>Alternate DNS:</label>
+                  <input type="text" id="profSecondaryDnsInput" class="mono dev-search" placeholder="1.0.0.1" />
+                </div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">
+                  <button type="button" class="btn" style="padding:2px 8px;font-size:11px" onclick="fillProfileDns('1.1.1.1','1.0.0.1')">⚡ Cloudflare</button>
+                  <button type="button" class="btn" style="padding:2px 8px;font-size:11px" onclick="fillProfileDns('9.9.9.9','149.112.112.112')">🛡️ Quad9</button>
+                  <button type="button" class="btn" style="padding:2px 8px;font-size:11px" onclick="fillProfileDns('94.140.14.14','94.140.15.15')">🛑 AdGuard</button>
+                  <button type="button" class="btn" style="padding:2px 8px;font-size:11px" onclick="fillProfileDns('8.8.8.8','8.8.4.4')">🌐 Google</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Additional Settings (Right Side) -->
+          <div class="netsetman-col">
+            <div class="netsetman-box">
+              <div class="netsetman-box-title">⚙️ Additional Settings</div>
+              
+              <div style="display:flex;flex-direction:column;gap:12px;margin-top:8px">
+                <label style="display:flex;align-items:center;gap:8px;font-size:13px">
+                  <input type="checkbox" id="profProxyChk" />
+                  <span><b>Browser / System Proxy</b></span>
+                </label>
+                <div class="prof-sub-fields" id="profProxyFields" style="margin-left:22px;opacity:0.4;pointer-events:none">
+                  <div class="prof-field-row">
+                    <label>Proxy Server:</label>
+                    <input type="text" id="profProxyInput" class="mono dev-search" placeholder="10.10.0.2:8080" />
+                  </div>
+                </div>
+
+                <div class="prof-field-row" style="margin-top:8px">
+                  <label>Profile Icon:</label>
+                  <select id="profIconSelect" class="dev-select" style="width:100px">
+                    <option value="🏠">🏠 Home</option>
+                    <option value="💼">💼 Work</option>
+                    <option value="🎮">🎮 Gaming</option>
+                    <option value="🛡️">🛡️ Secure</option>
+                    <option value="☕">☕ Cafe/Public</option>
+                    <option value="📁">📁 Custom</option>
+                  </select>
+                </div>
+
+                <div class="prof-field-row">
+                  <label>Notes / Tag:</label>
+                  <input type="text" id="profNotesInput" class="dev-search" placeholder="e.g. Office Static IP configuration" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Profile Summary & Action Logs -->
+            <div class="netsetman-box" style="background:rgba(56,189,248,0.03)">
+              <div class="netsetman-box-title">ℹ️ Profile Status & Details</div>
+              <div id="profSummaryBox" style="font-size:12.5px;color:var(--muted);line-height:1.6">
+                Select or edit a profile tab above.
+              </div>
+              <div id="profApplyResultBox" style="margin-top:10px;font-size:12px;color:var(--ok)" hidden></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card Footer Actions Bar -->
+        <div class="netsetman-footer">
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="btn" id="profDuplicateBtn" title="Duplicate current profile">📋 Duplicate</button>
+            <button class="btn" id="profDeleteBtn" style="color:var(--danger);border-color:rgba(239,68,68,0.3)" title="Delete this profile">🗑️ Delete</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="profSaveFeedback" style="font-size:12px;color:var(--ok);margin-right:8px"></span>
+            <button class="btn" id="profSaveBtn">💾 Save Profile</button>
+            <button class="btn btn-accent" id="profApplyBtn" style="font-weight:700;padding:8px 18px">⚡ Apply Profile Now</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NETWORK TOOLS & SECURITY (Tools Suite) -->
+    <section class="panel" id="panel-nettools">
+      <div class="panel-head">
+        <div>
+          <h2>Network Tools & System Repair</h2>
+          <p>1-Click DNS switcher · Network repair & flush · Wake-on-LAN · Windows Hosts Anti-Telemetry Shield</p>
+        </div>
+        <div class="dev-actions">
+          <button class="btn btn-accent" id="quickRepairBtn">⚡ 1-Click Network Repair & Flush</button>
+        </div>
+      </div>
+
+      <!-- 1-Click DNS Switcher -->
+      <div class="s1-card s1-wide">
+        <div class="s1-card-head">
+          <h4>⚡ 1-Click Fast DNS Switcher</h4>
+          <span class="muted" id="dnsActiveAdapter">Active Adapter: detecting…</span>
+        </div>
+        <p class="s1-note" style="margin-bottom:12px">Switch your computer's DNS resolver immediately with zero network restart required</p>
+        <div class="dns-presets-grid" id="dnsPresetsGrid">
+          <!-- Populated by app.js -->
+        </div>
+        <div id="dnsApplyLog" style="margin-top:10px;font-size:12px;color:var(--ok)" hidden></div>
+      </div>
+
+      <div class="wifi-grid" style="margin-top:16px">
+        <!-- Wake-on-LAN Transmitter -->
+        <div class="s1-card">
+          <div class="s1-card-head">
+            <h4>⚡ Wake-on-LAN (WOL) Station</h4>
+            <span class="s1-badge ok">Magic Packet</span>
+          </div>
+          <p class="s1-note">Send a broadcast Magic Packet to power on a remote PC or NAS</p>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+            <input type="text" id="wolMacInput" class="dev-search" placeholder="Target MAC (e.g. 00:11:22:33:44:55)" />
+            <div style="display:flex;gap:8px">
+              <input type="text" id="wolBroadcastInput" class="dev-search" placeholder="Broadcast (255.255.255.255:9)" value="255.255.255.255:9" style="flex:1" />
+              <button class="btn btn-accent" id="sendWolBtn">⚡ Send Wake</button>
+            </div>
+          </div>
+          <div id="wolStatus" style="margin-top:8px;font-size:12px;color:var(--muted)"></div>
+        </div>
+
+        <!-- Windows Hosts File & Anti-Telemetry Manager -->
+        <div class="s1-card">
+          <div class="s1-card-head">
+            <div style="display:flex;align-items:center;gap:10px">
+              <h4>📝 Windows Hosts Shield</h4>
+              <span class="badge" id="hostsShieldBadge">Checking…</span>
+            </div>
+            <button class="btn btn-accent" id="toggleAntiTelemetryBtn" style="padding:4px 10px;font-size:11.5px">🛡️ Toggle Shield</button>
+          </div>
+          <p class="s1-note">Block telemetry & spyware tracking via Windows hosts</p>
+          <div style="margin-top:10px">
+            <button class="btn" id="viewHostsBtn" style="width:100%">👁️ View / Edit Hosts File</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Windows Hosts Editor Modal/Box -->
+      <div class="s1-card s1-wide" id="hostsEditorBox" style="margin-top:16px" hidden>
+        <h4>📝 Windows Hosts File Content (C:\Windows\System32\drivers\etc\hosts)</h4>
+        <textarea id="hostsTextarea" class="mono" style="width:100%;height:180px;background:var(--bg);color:var(--txt);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;resize:vertical;margin-top:8px"></textarea>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+          <span class="muted" id="hostsSaveStatus" style="font-size:12px;margin-right:auto"></span>
+          <button class="btn" id="cancelHostsBtn">Cancel</button>
+          <button class="btn btn-accent" id="saveHostsBtn">💾 Save Hosts File</button>
+        </div>
+      </div>
+
+      <!-- Network Repair Console Log -->
+      <div class="s1-card s1-wide" id="repairLogCard" style="margin-top:16px" hidden>
+        <h4>🛠️ Network Repair Output</h4>
+        <div class="s1-list" id="repairStepList" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <!-- PACKET SNIFFER (Advanced Suite) -->
+    <section class="panel" id="panel-sniffer">
+      <div class="panel-head">
+        <div>
+          <h2 style="display:flex;align-items:center;gap:10px">
+            Live Packet Sniffer & Protocol Analyzer
+            <span class="sniff-status-dot" id="sniffPulseDot" style="display:inline-block;width:10px;height:10px;background:#ef4444;border-radius:50%;box-shadow:0 0 10px #ef4444;opacity:0.3"></span>
+          </h2>
+          <p>Real-time packet capture · Protocol breakdown · Deep header inspection & Hex dump viewer</p>
+        </div>
+        <div class="dev-actions">
+          <button class="btn btn-accent" id="sniffStartBtn">▶ Start Capture</button>
+          <button class="btn" id="sniffStopBtn">⏸ Pause</button>
+          <button class="btn" id="sniffClearBtn">🗑 Clear</button>
+          <a class="btn" id="sniffExportBtn" href="/api/sniffer/pcap" download="netvisual_capture.pcap">⬇ Export .PCAP</a>
+        </div>
+      </div>
+
+      <!-- Live Stream Filter & Counter Bar -->
+      <div class="dev-toolbar">
+        <div class="dev-filter-group">
+          <input type="text" id="sniffSearchInput" class="dev-search" placeholder="Filter packets by IP, port, or protocol…" />
+          <select id="sniffProtoFilter" class="dev-select">
+            <option value="ALL">All Protocols</option>
+            <option value="DNS">DNS</option>
+            <option value="TLS/HTTPS">TLS / HTTPS</option>
+            <option value="HTTP">HTTP</option>
+            <option value="TCP">TCP</option>
+            <option value="UDP">UDP</option>
+            <option value="QUIC">QUIC</option>
+            <option value="ICMP">ICMP</option>
+          </select>
+        </div>
+        <div class="muted" style="font-size:12.5px;font-family:var(--mono)" id="sniffCounter">0 packets captured</div>
+      </div>
+
+      <!-- Quick BPF Filter Chips -->
+      <div class="bpf-chips-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;align-items:center">
+        <button class="btn bpf-chip active" data-filter="" style="padding:4px 10px;font-size:11.5px">All Traffic</button>
+        <button class="btn bpf-chip" data-filter="SYN" style="padding:4px 10px;font-size:11.5px">🟢 SYN Handshake</button>
+        <button class="btn bpf-chip" data-filter="DNS" style="padding:4px 10px;font-size:11.5px">🔍 DNS (53)</button>
+        <button class="btn bpf-chip" data-filter="TLS/HTTPS" style="padding:4px 10px;font-size:11.5px">🔒 TLS / HTTPS (443)</button>
+        <button class="btn bpf-chip" data-filter="HTTP" style="padding:4px 10px;font-size:11.5px">🌐 HTTP (80)</button>
+        <button class="btn bpf-chip" data-filter="UDP" style="padding:4px 10px;font-size:11.5px">⚠️ UDP</button>
+        <button class="btn bpf-chip" data-filter="ICMP" style="padding:4px 10px;font-size:11.5px">📡 ICMP Ping</button>
+        <button class="btn" id="viewConvsBtn" style="padding:4px 12px;font-size:11.5px;margin-left:auto;background:linear-gradient(90deg,var(--accent),var(--accent2));color:#04121f;font-weight:700">👥 IP Conversations Matrix</button>
+      </div>
+
+      <!-- Protocol Distribution Bar -->
+      <div class="sniff-proto-bar" id="sniffProtoBar" style="margin-top:12px">
+        <!-- Filled dynamically by app.js -->
+      </div>
+
+      <!-- Live Packet Table -->
+      <div class="table-wrap sniff-table-wrap" style="margin-top:14px">
+        <table class="tbl sniff-table">
+          <thead>
+            <tr>
+              <th style="width:50px">No.</th>
+              <th style="width:90px">Time</th>
+              <th style="width:150px">Source</th>
+              <th style="width:150px">Destination</th>
+              <th style="width:85px">Protocol</th>
+              <th style="width:65px">Length</th>
+              <th>Info</th>
+              <th style="width:80px">Stream</th>
+            </tr>
+          </thead>
+          <tbody id="sniffTableBody">
+            <tr><td colspan="8" class="muted" style="text-align:center;padding:30px">Packet sniffer is ready. Click <b>▶ Start Capture</b> to capture live traffic.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pro Packet Inspector with Interactive Tree & Synchronized Hex -->
+      <div class="sniff-inspector" id="sniffInspector" style="margin-top:16px" hidden>
+        <div class="sniff-inspector-header">
+          <div class="sniff-insp-title">
+            <span class="sniff-insp-icon">🔬</span>
+            <b id="sniffInspFrameTitle">Frame #0</b>
+            <span class="badge b-tcp" id="sniffInspProtoBadge">TCP</span>
+            <span class="muted" id="sniffInspEndpoints" style="font-family:var(--mono);font-size:12px">—</span>
+          </div>
+          <div class="sniff-insp-actions">
+            <button class="btn btn-accent" id="openPacketDrawerBtn" style="padding:4px 10px;font-size:11.5px;font-weight:700">
+              🪟 Open Deep Intelligence Window (מידע עזר מתקדם)
+            </button>
+            <button class="btn" id="inspFollowStreamBtn" style="padding:4px 8px;font-size:11.5px;color:var(--accent)">🌊 Follow Stream</button>
+            <div class="dropdown" style="display:inline-block">
+              <button class="btn" id="inspCopyMenuBtn" style="padding:4px 8px;font-size:11.5px">📋 Copy ▾</button>
+            </div>
+            <button class="btn" id="inspPrevPktBtn" style="padding:4px 8px;font-size:11.5px" title="Previous Packet">◀</button>
+            <button class="btn" id="inspNextPktBtn" style="padding:4px 8px;font-size:11.5px" title="Next Packet">▶</button>
+            <button class="btn" id="closeInspectorBtn" style="padding:4px 8px;font-size:11.5px" title="Close Inspector">✕</button>
+          </div>
+        </div>
+
+        <div class="sniff-inspector-body">
+          <!-- Left: Collapsible Layer Dissector Tree -->
+          <div class="sniff-tree-pane">
+            <div class="sniff-pane-head">
+              <h4>🌲 Protocol Dissection Tree</h4>
+              <span class="muted" style="font-size:11px">Click layer to highlight bytes</span>
+            </div>
+            <div id="sniffTreeContent" class="sniff-tree-box">
+              <!-- Dynamically populated by app.js -->
+            </div>
+          </div>
+
+          <!-- Right: Interactive Hex & ASCII Byte Inspector -->
+          <div class="sniff-hex-pane">
+            <div class="sniff-pane-head">
+              <h4>💾 Interactive Hex & ASCII Dump</h4>
+              <div style="display:flex;gap:6px">
+                <button class="btn" id="copyHexDumpBtn" style="padding:2px 6px;font-size:10.5px">Copy Hex</button>
+                <button class="btn" id="copyAsciiDumpBtn" style="padding:2px 6px;font-size:10.5px">Copy ASCII</button>
+              </div>
+            </div>
+            <div id="sniffHexContainer" class="sniff-hex-container">
+              <pre id="sniffHexBox" class="sniff-hex-box"></pre>
+            </div>
+            <div id="sniffByteHoverInfo" class="sniff-byte-hover-info">
+              <span class="muted">Hover over any byte in the dump above for bitwise inspection & protocol layer mapping</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEEP PACKET INTELLIGENCE & HELPER DRAWER MODAL -->
+    <div class="health-modal" id="packetDrawerModal" hidden>
+      <div class="health-modal-content" style="max-width:980px">
+        <div class="health-modal-head">
+          <div>
+            <h2>🔬 Deep Packet Intelligence & Protocol Dissector</h2>
+            <p class="muted" id="drawerPktSummary" style="font-size:12.5px;font-family:var(--mono)">Packet # · Protocol Analysis</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="badge" id="drawerExpertBadge">INFO</span>
+            <button class="btn" id="drawerFollowStreamBtn" style="color:var(--accent)">🌊 Follow Stream</button>
+            <button class="btn" id="closePacketDrawerBtn">✕ Close</button>
+          </div>
+        </div>
+
+        <div class="packet-drawer-grid" style="display:grid;grid-template-columns:1.3fr 1fr;gap:16px;margin-top:16px">
+          <!-- Left Column: Expert Explanations & Deep Fields -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <!-- AI / Protocol Dissector Breakdown -->
+            <div class="s1-card">
+              <div class="s1-card-head">
+                <h4>🧠 Expert Protocol Explainer & RFC Insights</h4>
+                <span class="s1-badge ok" id="drawerProtoNameBadge">Protocol</span>
+              </div>
+              <div id="drawerExpertExplainer" style="font-size:13px;line-height:1.6;color:var(--txt)">
+                <!-- Filled dynamically -->
+              </div>
+            </div>
+
+            <!-- Detailed Headers Table -->
+            <div class="s1-card">
+              <div class="s1-card-head">
+                <h4>📑 Header Fields & Bitwise Dissection</h4>
+              </div>
+              <div id="drawerDetailedFields" class="s1-list" style="max-height:220px;overflow-y:auto">
+                <!-- Filled dynamically -->
+              </div>
+            </div>
+
+            <!-- Decoded Strings / Payload ASCII -->
+            <div class="s1-card">
+              <div class="s1-card-head">
+                <h4>🔤 Decoded Strings & Payload ASCII</h4>
+                <button class="btn" id="copyPayloadStringsBtn" style="padding:2px 6px;font-size:11px">📋 Copy</button>
+              </div>
+              <pre id="drawerPayloadStrings" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:var(--mono);font-size:11.5px;max-height:160px;overflow:auto;white-space:pre-wrap;color:#94a3b8"></pre>
+            </div>
+          </div>
+
+          <!-- Right Column: GeoIP, Threat Intelligence & TCP Matrix -->
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <!-- GeoIP & Endpoint Intelligence -->
+            <div class="s1-card">
+              <div class="s1-card-head">
+                <h4>🌍 Endpoint GeoIP & Host Intelligence</h4>
+              </div>
+              <div id="drawerGeoIntelligence" style="font-size:12.5px">
+                <div class="muted">Loading endpoint geolocation…</div>
+              </div>
+            </div>
+
+            <!-- TCP Flags Matrix -->
+            <div class="s1-card">
+              <div class="s1-card-head">
+                <h4>⚡ TCP Control Flags Matrix</h4>
+              </div>
+              <div id="drawerTcpFlagsMatrix" style="display:flex;gap:6px;flex-wrap:wrap">
+                <!-- Filled dynamically -->
+              </div>
+            </div>
+
+            <!-- Security & Anomaly Rating -->
+            <div class="s1-card">
+              <div class="s1-card-head">
+                <h4>🛡️ Packet Security & Anomaly Assessment</h4>
+                <span class="badge" id="drawerSecRatingBadge">CLEAN</span>
+              </div>
+              <div id="drawerSecAssessment" style="font-size:12.5px;color:var(--txt);line-height:1.5">
+                <!-- Filled dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOLLOW TCP/UDP STREAM MODAL -->
+    <div class="health-modal" id="streamModal" hidden>
+      <div class="health-modal-content" style="max-width:860px">
+        <div class="health-modal-head">
+          <div>
+            <h2>🦈 Follow TCP / UDP Stream</h2>
+            <p class="muted" id="streamEndpoints" style="font-size:12px;font-family:var(--mono)">Reassembling conversation…</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="badge b-est" id="streamTurnsBadge">0 Turns</span>
+            <button class="btn" id="closeStreamBtn">✕ Close</button>
+          </div>
+        </div>
+        <div class="stream-content-box" id="streamContentBox" style="margin-top:14px;max-height:480px;overflow-y:auto;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;font-family:var(--mono);font-size:12px;line-height:1.6">
+          <!-- Populated by app.js with Red (Client) & Blue (Server) chunks -->
+        </div>
+      </div>
+    </div>
+
+    <!-- CONVERSATIONS MATRIX MODAL -->
+    <div class="health-modal" id="convsModal" hidden>
+      <div class="health-modal-content" style="max-width:920px">
+        <div class="health-modal-head">
+          <div>
+            <h2>👥 Deep Packet IP Conversations & Node Graph</h2>
+            <p class="muted" style="font-size:12.5px">Aggregated 2-way traffic flows and visual topology of active packet streams</p>
+          </div>
+          <button class="btn" id="closeConvsBtn">✕ Close</button>
+        </div>
+        <div id="convsNodeGraph" style="height:350px;width:100%;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:10px;margin-top:14px;box-shadow:inset 0 2px 12px rgba(0,0,0,0.5)">
+          <div class="muted" style="text-align:center;line-height:350px">Loading Node Graph...</div>
+        </div>
+        <div class="table-wrap" style="max-height:300px;overflow:auto;margin-top:14px">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Endpoint A</th>
+                <th>Endpoint B</th>
+                <th>Protocol</th>
+                <th>Packets (A➔B / B➔A)</th>
+                <th>Bytes (A➔B / B➔A)</th>
+                <th>Total Volume</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="convsTableBody">
+              <!-- Populated by app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- HEALTH REPORT MODAL -->
+    <div class="health-modal" id="healthModal" hidden>
+      <div class="health-modal-content">
+        <div class="health-modal-head">
+          <h2>📄 NetVisual A+ · Complete Network Health & Security Audit</h2>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-accent" id="printReportBtn">🖨️ Print / Save PDF</button>
+            <button class="btn" id="closeReportBtn">✕ Close</button>
+          </div>
+        </div>
+        <div id="healthReportPrintArea" class="health-report-body">
+          <!-- Generated dynamically by app.js -->
+        </div>
+      </div>
+    </div>
+
+    <!-- DEVICES -->
+    <section class="panel" id="panel-devices">
+      <div class="panel-head">
+        <div>
+          <h2>Discovered Devices</h2>
+          <p>Live hosts on the primary subnet (from ARP table)</p>
+        </div>
+        <div class="dev-actions">
+          <button class="btn" id="csvBtn" title="Export all discovered devices as a CSV file (Excel / Google Sheets)">⬇ CSV</button>
+          <button class="btn btn-accent" id="deepScanBtn" title="Ping-sweep the whole subnet (slower, catches hosts not in ARP)">🔍 Deep Scan</button>
+        </div>
+      </div>
+      <div class="dev-filters" id="devFilters">
+        <input type="search" id="devSearch" class="dev-search" placeholder="🔎 filter by IP, MAC, vendor…" />
+        <select id="devStatus" class="dev-select" title="Filter by status">
+          <option value="ALL">Status: all</option>
+          <option value="up">status: up</option>
+          <option value="down">status: down</option>
+        </select>
+        <select id="devVendor" class="dev-select" title="Filter by vendor">
+          <option value="ALL">vendor: all</option>
+        </select>
+        <button class="btn" id="updateVendorsBtn" title="Fetch missing vendor information for all unknown MAC addresses">🔄 Update Vendors</button>
+        <span class="dev-count" id="devCount"></span>
+      </div>
+      <div class="scan-progress" id="scanProgress" hidden>
+        <div class="scan-bar"><div class="scan-bar-fill" id="scanFill"></div></div>
+        <div class="scan-meta"><span id="scanMeta">scanning…</span><span id="scanPct">0%</span></div>
+      </div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>IP</th><th>Kind</th><th>MAC</th><th>Vendor</th><th>OS</th><th>Status</th><th>Latency</th><th>PTR</th><th>Ports</th><th></th></tr></thead>
+          <tbody id="devBody"><tr><td colspan="10" class="muted">loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- CONNECTIONS -->
+    <section class="panel" id="panel-connections">
+      <div class="panel-head">
+        <div>
+          <h2>Active Connections & Process Bandwidth</h2>
+          <p>Live process socket telemetry · <span id="connCount"></span> sockets</p>
+        </div>
+        <div class="dev-actions">
+          <button class="btn" id="connCsvBtn" title="Export all active sockets to CSV (Excel / Sheets)">⬇ Export CSV</button>
+        </div>
+      </div>
+
+      <!-- GlassWire Style Process Bandwidth Ranking Card -->
+      <div class="s1-card s1-wide" style="margin-bottom:16px">
+        <div class="s1-card-head">
+          <h4>📊 Application Bandwidth & Firewall Control <span class="muted">(GlassWire Style)</span></h4>
+          <span class="muted" id="procBwTotalRate">Total: 0 B/s</span>
+        </div>
+        <p class="s1-note" style="margin-bottom:12px">Real-time breakdown of network bandwidth consumed per running application with 1-click Windows Defender Firewall blocker</p>
+        <div class="proc-bw-list" id="procBwList">
+          <div class="muted" style="padding:10px 0;font-size:12px">Aggregating process sockets…</div>
+        </div>
+      </div>
+
+      <div class="chips" id="connChips"></div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>Proto</th><th>Local</th><th>Remote</th><th>State</th><th>PID</th><th>Process</th><th>Action</th></tr></thead>
+          <tbody id="connBody"><tr><td colspan="7" class="muted">loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ROUTES -->
+    <section class="panel" id="panel-routes">
+      <div class="panel-head">
+        <h2>Routing Table</h2>
+        <p>route print · <span id="routeCount"></span> entries</p>
+      </div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>Destination</th><th>Netmask</th><th>Gateway</th><th>Interface</th><th>Metric</th></tr></thead>
+          <tbody id="routeBody"><tr><td colspan="5" class="muted">loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- INTERFACES -->
+    <section class="panel" id="panel-interfaces">
+      <div class="panel-head">
+        <h2>Network Interfaces</h2>
+        <p>ipconfig /all · adapters, IPs, gateways, MAC</p>
+      </div>
+      <div class="cards" id="ifaceCards"><div class="muted">loading…</div></div>
+    </section>
+
+    <!-- DIAGNOSTICS -->
+    <section class="panel" id="panel-diag">
+      <div class="panel-head">
+        <h2>Diagnostics</h2>
+        <p>Run live ping / DNS / traceroute against any host</p>
+      </div>
+      <div class="diag-grid">
+        <div class="diag-card">
+          <h3>Ping</h3>
+          <div class="row"><input id="pingIp" placeholder="8.8.8.8 or 192.168.1.1"><button class="btn" onclick="runPing()">Run</button></div>
+          <pre class="out" id="pingOut"></pre>
+        </div>
+        <div class="diag-card">
+          <h3>DNS Lookup</h3>
+          <div class="row"><input id="dnsHost" placeholder="google.com"><button class="btn" onclick="runDns()">Run</button></div>
+          <pre class="out" id="dnsOut"></pre>
+        </div>
+        <div class="diag-card diag-wide">
+          <h3>Traceroute</h3>
+          <div class="row"><input id="trHost" placeholder="8.8.8.8"><button class="btn" onclick="runTr()">Run</button></div>
+          <pre class="out" id="trOut"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- RAW CMD -->
+    <section class="panel" id="panel-raw">
+      <div class="panel-head">
+        <h2>Raw CMD Console</h2>
+        <p>Read-only · allowed commands only</p>
+      </div>
+      <div class="raw-pick" id="rawPick"></div>
+      <pre class="out raw-out" id="rawOut">Pick a command above to run it…</pre>
+    </section>
+      <!-- AI ASSISTANT PANEL -->
+      <section class="panel" id="panel-ai">
+        <div class="panel-head">
+          <div>
+            <h2>🤖 Cyber AI Intelligence Hub</h2>
+            <p>Interactive AI network analyst · Inspect sockets, identify anomalies, decode packets & protocols</p>
+          </div>
+          <div class="dev-actions">
+            <span class="s1-badge ok" id="aiStatusBadge" style="display:flex;align-items:center;gap:6px;">
+              <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 8px #34d399"></span>
+              <span id="aiActiveEngineLabel">Ollama · Active</span>
+            </span>
+          </div>
+        </div>
+        
+        <div class="ai-container">
+          <!-- Left Settings Sidebar -->
+          <div class="ai-settings">
+            <div class="ai-settings-header">
+              <h3>⚙️ AI Provider & Engine</h3>
+              <span class="ai-saved-indicator" id="aiSavedIndicator">💾 Auto-saved</span>
+            </div>
+            
+            <div class="ai-field">
+              <label>AI Provider Engine</label>
+              <select id="aiProvider" class="dev-select">
+                <option value="ollama">🦙 Ollama (Local LLM - 100% Private)</option>
+                <option value="lmstudio">🖥️ LM Studio / LocalAI (Local LLM)</option>
+                <option value="openai">🟢 OpenAI (ChatGPT · GPT-4o / o3)</option>
+                <option value="anthropic">🟣 Anthropic (Claude 3.5 / 3.7 Sonnet)</option>
+                <option value="google">🔵 Google (Gemini 2.0 / 1.5 Flash)</option>
+                <option value="deepseek">🐋 DeepSeek (V3 / R1 Reasoner)</option>
+                <option value="groq">⚡ Groq (Ultra-Fast Llama 3.3)</option>
+                <option value="mistral">🌊 Mistral AI (Codestral / Large)</option>
+                <option value="openrouter">🌐 OpenRouter (Multi-Model Gateway)</option>
+                <option value="custom">⚙️ Custom / New AI (Any OpenAI Endpoint)</option>
+              </select>
+            </div>
+            
+            <div class="ai-field" id="aiModelGroup">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <label>Model Name</label>
+                <button type="button" class="btn-xs" id="aiCustomModelToggle" title="Switch to manual model name typing">✏️ Custom</button>
+              </div>
+              <select id="aiModel" class="dev-select">
+                <option value="gemma4:12b">gemma4:12b</option>
+                <option value="llama3">llama3</option>
+              </select>
+              <input type="text" id="aiCustomModelInput" class="dev-search" style="display:none;" placeholder="Enter custom model id (e.g. my-model)" />
+            </div>
+
+            <div class="ai-field" id="aiEndpointGroup">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <label id="aiEndpointLabel">API Endpoint URL</label>
+                <button type="button" class="btn-xs" id="aiResetEndpointBtn" title="Reset to default endpoint">↺ Default</button>
+              </div>
+              <input type="text" id="aiEndpoint" class="dev-search" value="http://localhost:11434/api/generate" placeholder="http://localhost:11434/api/generate" />
+            </div>
+
+            <div class="ai-field" id="aiKeyGroup" style="display:none;">
+              <label>API Key / Secret Token</label>
+              <div style="display:flex;gap:6px;">
+                <input type="password" id="aiApiKey" class="dev-search" style="flex:1" placeholder="sk-... / api-key" />
+                <button type="button" class="btn" id="aiToggleKeyVisBtn" title="Show/Hide API Key">👁️</button>
+              </div>
+            </div>
+
+            <button id="aiTestBtn" class="btn btn-accent" style="width:100%;margin-top:4px;">🔌 Test & Discover Models</button>
+            <div id="aiTestResult" style="font-size:11.5px;min-height:16px;text-align:center;"></div>
+
+            <!-- Advanced Config Section -->
+            <div class="ai-advanced-section">
+              <div class="ai-advanced-title" id="aiToggleAdvBtn">
+                <span>🎛️ Cyber AI Behavior & Telemetry</span>
+                <span id="aiAdvArrow">▼</span>
+              </div>
+              <div class="ai-advanced-body" id="aiAdvBody">
+                <div class="ai-field" style="margin-top:6px;">
+                  <label>Assistant Persona / System Role</label>
+                  <select id="aiPersona" class="dev-select">
+                    <option value="threat_hunter">🛡️ Cyber Security & Threat Hunter</option>
+                    <option value="packet_analyst">🌐 Network & Protocol Architect</option>
+                    <option value="speed_optimizer">⚡ Speed & Latency Troubleshooter</option>
+                    <option value="concise">🎯 Concise Technical Assistant</option>
+                    <option value="custom_persona">✏️ Custom Persona Instructions</option>
+                  </select>
+                </div>
+                <div class="ai-field" id="aiCustomPromptWrap" style="display:none;">
+                  <textarea id="aiCustomSystemPrompt" class="dev-search" rows="3" placeholder="Enter custom system instructions for the AI..."></textarea>
+                </div>
+
+                <div class="ai-field" style="margin-top:8px;">
+                  <div style="display:flex;justify-content:space-between;">
+                    <label>Temperature (Creativity):</label>
+                    <span id="aiTempDisplay" style="color:var(--accent);font-weight:700">0.7</span>
+                  </div>
+                  <input type="range" id="aiTempSlider" min="0.0" max="1.0" step="0.05" value="0.7" style="width:100%;cursor:pointer;" />
+                </div>
+
+                <div class="ai-field" style="margin-top:8px;">
+                  <label class="ai-checkbox-label">
+                    <input type="checkbox" id="aiIncludeTelemetry" checked />
+                    <span>Attach Live Telemetry (IP, sockets, stats)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            
+            <div style="flex:1;min-height:10px;"></div>
+            
+            <div class="ai-privacy-note">
+              🔒 <b>Privacy Notice:</b> Local models (Ollama/LM Studio) run 100% offline on your device with no data sent to cloud servers.
+            </div>
+          </div>
+          
+          <!-- Right Chat Interface -->
+          <div class="ai-chat-area">
+            <!-- Chat Area Header Bar -->
+            <div class="ai-chat-header">
+              <div class="ai-header-left">
+                <span class="ai-header-icon">🤖</span>
+                <div>
+                  <h4 style="margin:0;font-size:13.5px;color:var(--txt)">Cyber AI Session</h4>
+                  <small style="color:var(--muted);font-size:11px" id="aiChatSubLabel">Model: gemma4:12b · Context: Live Sockets Attached</small>
+                </div>
+              </div>
+              <div class="ai-header-right">
+                <button class="btn btn-xs" id="aiCopyChatBtn" title="Copy full conversation to clipboard">📋 Copy Chat</button>
+                <button class="btn btn-xs" id="aiClearChatBtn" title="Clear chat history">🧹 Clear</button>
+              </div>
+            </div>
+
+            <!-- Quick Action Chips -->
+            <div class="ai-quick-chips">
+              <button class="ai-chip" data-prompt="הפעל סריקת אבטחה מלאה על הרשת והחיבורים שלי וספר לי על ליקויים שמצאת">🛡️ סרוק איומי אבטחה</button>
+              <button class="ai-chip" data-prompt="בצע בדיקת מהירות אינטרנט מלאה ודווח לי על התוצאות והשיהוי">⚡ בדיקת מהירות</button>
+              <button class="ai-chip" data-prompt="חפש באינטרנט מידע על מתקפת חולשת CVE-2024-38077 ואיך להתגונן מפניה">🌐 חפש באינטרנט (CVE/איומים)</button>
+              <button class="ai-chip" data-prompt="תקן את הרשת: בצע Flush DNS ורענן את הניתובים">🔧 תקן רשת ו-Flush DNS</button>
+              <button class="ai-chip" data-prompt="בדוק דליפות DNS ובדוק האם הרשת שלי מאובטחת">🔍 בדיקת דליפות DNS</button>
+              <button class="ai-chip" data-prompt="החלף את שרתי ה-DNS שלי ל-Cloudflare המהיר והמאובטח">🚀 החלף DNS ל-Cloudflare</button>
+            </div>
+
+            <!-- Chat Message Stream -->
+            <div id="aiChatHistory" class="ai-chat-stream">
+              <div class="ai-welcome-box">
+                <div class="ai-welcome-icon">⚡</div>
+                <h3 style="margin-bottom:6px;font-size:18px;color:var(--txt);">NetVisual Cyber AI Assistant</h3>
+                <p style="color:var(--muted);font-size:13px;max-width:520px;line-height:1.5;margin-bottom:16px;">
+                  Your dedicated cybersecurity and network intelligence co-pilot. Query real-time traffic, diagnose packet anomalies, inspect risky sockets, or chat with local and cloud AI models.
+                </p>
+                <div class="ai-welcome-tags">
+                  <span>🔒 100% Private Local Ollama</span>
+                  <span>⚡ Autonomous Tool Execution</span>
+                  <span>🌐 Live Internet Search</span>
+                  <span>🛡️ Vulnerability & DNS Audit</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Chat Input Area -->
+            <div class="ai-input-wrap">
+              <div class="ai-input-box">
+                <textarea id="aiChatInput" class="ai-textarea" rows="1" dir="auto" placeholder="Ask Cyber AI anything about your network... (Enter to send, Shift+Enter for new line)"></textarea>
+                <button id="aiSendBtn" class="btn btn-accent ai-send-btn">
+                  <span>Send</span>
+                  <span style="font-size:15px">🚀</span>
+                </button>
+              </div>
+              <div class="ai-input-footer">
+                <span>Tip: Click any suggestion chip above or ask in English / עברית.</span>
+                <span id="aiTelemetryStatusHint" style="color:var(--accent);">● Telemetry Attached</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      </main>
+    </div> <!-- end .main-viewport -->
+  </div> <!-- end .app-shell -->
+
+  <!-- FULL-SCREEN CYBER NOC / WALLBOARD MODAL -->
+  <div class="noc-wallboard-backdrop" id="nocWallboard" hidden>
+    <div class="noc-header">
+      <div class="noc-title-wrap">
+        <span class="noc-badge">🔴 LIVE NOC WALLBOARD</span>
+        <h2>Cyber Network Operations Center</h2>
+        <span class="muted" style="font-size:12px;font-family:var(--mono)">Auto-refresh: 1s · High Precision Telemetry</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="badge b-est" id="nocUptimeBadge">UPTIME: 100%</span>
+        <button class="btn" id="closeNocBtn" style="border-color:var(--err);color:var(--err);padding:6px 14px;font-weight:700">✕ Exit NOC Mode (ESC)</button>
+      </div>
+    </div>
+    <div class="noc-grid">
+      <!-- 1. Throughput Radar & Speedometer -->
+      <div class="noc-card">
+        <div class="noc-card-head">
+          <span class="noc-card-title">📡 Real-Time Throughput</span>
+          <span class="badge b-est" id="nocThroughputTotal">0 Mbps</span>
+        </div>
+        <div class="noc-card-body" style="display:flex;flex-direction:column;justify-content:center;align-items:center">
+          <div style="display:flex;gap:24px;align-items:center;margin-bottom:8px">
+            <div style="text-align:center">
+              <span style="font-size:11px;color:var(--muted);text-transform:uppercase">Download Rate</span>
+              <div style="font-size:22px;font-family:var(--mono);font-weight:700;color:var(--accent)" id="nocRxVal">0 KB/s</div>
+            </div>
+            <div style="text-align:center">
+              <span style="font-size:11px;color:var(--muted);text-transform:uppercase">Upload Rate</span>
+              <div style="font-size:22px;font-family:var(--mono);font-weight:700;color:var(--ok)" id="nocTxVal">0 KB/s</div>
+            </div>
+          </div>
+          <svg id="nocBwChart" class="bw-chart" viewBox="0 0 400 90" preserveAspectRatio="none" style="width:100%;height:80px"></svg>
+        </div>
+      </div>
+
+      <!-- 2. Security Posture & Threat Shield -->
+      <div class="noc-card">
+        <div class="noc-card-head">
+          <span class="noc-card-title">🛡️ Cyber Security & Threat Radar</span>
+          <span class="badge b-est" id="nocSecGrade">A+</span>
+        </div>
+        <div class="noc-card-body" style="display:flex;flex-direction:column;justify-content:space-around">
+          <div class="tr-kpis" style="margin:0">
+            <div class="tr-kpi"><b id="nocThreatCount" style="color:var(--ok)">0</b><span>Threats</span></div>
+            <div class="tr-kpi"><b id="nocOpenPortsCount">0</b><span>Open Ports</span></div>
+            <div class="tr-kpi"><b id="nocActiveSocketsCount">0</b><span>Sockets</span></div>
+          </div>
+          <div class="ai-exp-chips" id="nocThreatChips" style="margin-top:8px">
+            <!-- Filled dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Gateway & WAN Vitals -->
+      <div class="noc-card">
+        <div class="noc-card-head">
+          <span class="noc-card-title">🌐 Gateway & Latency Stability</span>
+          <span class="badge b-est" id="nocGwStatus">ONLINE</span>
+        </div>
+        <div class="noc-card-body" style="display:flex;flex-direction:column;justify-content:space-around">
+          <div class="tr-kpis" style="margin:0">
+            <div class="tr-kpi"><b id="nocPingMs">0 ms</b><span>Ping (GW)</span></div>
+            <div class="tr-kpi"><b id="nocJitterMs">0.4 ms</b><span>Jitter</span></div>
+            <div class="tr-kpi"><b id="nocLossPct">0%</b><span>Packet Loss</span></div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);display:flex;justify-content:space-between;border-top:1px solid rgba(255,255,255,0.06);padding-top:8px">
+            <span>Primary Gateway: <b id="nocGwIp" class="mono" style="color:var(--txt)">—</b></span>
+            <span>External IP: <b id="nocExtIp" class="mono" style="color:var(--accent)">—</b></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Top Talkers Matrix -->
+      <div class="noc-card">
+        <div class="noc-card-head">
+          <span class="noc-card-title">🚀 Top Network Consumers</span>
+          <span class="muted" style="font-size:11px">by socket count</span>
+        </div>
+        <div class="noc-card-body">
+          <div class="proc-bw-list" id="nocTopTalkersList" style="overflow-y:auto;max-height:190px">
+            <!-- Dynamic rows -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Active LAN Devices -->
+      <div class="noc-card">
+        <div class="noc-card-head">
+          <span class="noc-card-title">💻 Discovered LAN Neighbors</span>
+          <span class="badge" id="nocDevCount">0 Online</span>
+        </div>
+        <div class="noc-card-body">
+          <div id="nocDevList" style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:190px">
+            <!-- Dynamic rows -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Global Geolocation Radar -->
+      <div class="noc-card">
+        <div class="noc-card-head">
+          <span class="noc-card-title">🗺️ Global Communication Destinations</span>
+          <span class="badge b-est" id="nocGeoCount">0 Countries</span>
+        </div>
+        <div class="noc-card-body">
+          <div id="nocGeoDestList" style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:190px">
+            <!-- Dynamic rows -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MINI FLOATING HUD WIDGET -->
+  <div class="hud-overlay" id="hudOverlay" hidden>
+    <div class="hud-widget">
+      <div class="hud-head">
+        <div class="hud-brand"><span class="ov-pulse-dot"></span> <b>NETVISUAL HUD</b></div>
+        <button class="btn" id="closeHudBtn" style="padding:2px 8px;font-size:11px">✕ Exit HUD</button>
+      </div>
+      <div class="hud-grid">
+        <div class="hud-metric">
+          <span class="hud-lbl">DOWN</span>
+          <b class="hud-val" id="hudRx">0 B/s</b>
+        </div>
+        <div class="hud-metric">
+          <span class="hud-lbl">UP</span>
+          <b class="hud-val" id="hudTx">0 B/s</b>
+        </div>
+        <div class="hud-metric">
+          <span class="hud-lbl">PING (GW)</span>
+          <b class="hud-val" id="hudPing">—</b>
+        </div>
+        <div class="hud-metric">
+          <span class="hud-lbl">ACTIVE TCP</span>
+          <b class="hud-val" id="hudTcp">—</b>
+        </div>
+      </div>
+      <div class="hud-footer">
+        <span class="muted" id="hudTopTalker" style="font-size:11px">Top Process: detecting…</span>
+        <span class="badge b-est" id="hudSecGrade">A+</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMMAND PALETTE MODAL (Ctrl+K) -->
+  <div class="cmd-palette-backdrop" id="cmdPaletteModal" hidden>
+    <div class="cmd-palette-dialog">
+      <div class="cmd-palette-input-wrap">
+        <span class="cmd-palette-icon">⌨️</span>
+        <input type="text" id="cmdPaletteInput" class="cmd-palette-input" placeholder="Type a command, jump to device, change profile, or run action…" autofocus />
+        <span class="cmd-palette-esc">ESC</span>
+      </div>
+      <div class="cmd-palette-results" id="cmdPaletteResults">
+        <!-- Filled dynamically by app.js -->
+      </div>
+      <div class="cmd-palette-footer">
+        <span><b>↑↓</b> to navigate</span>
+        <span><b>ENTER</b> to select</span>
+        <span><b>ESC</b> to close</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PORT SCAN & VULNERABILITY MODAL -->
+  <div class="health-modal" id="portScanModal" hidden>
+    <div class="health-modal-content" style="max-width:880px">
+      <div class="health-modal-head">
+        <div>
+          <h2>🔍 Built-in LAN Port & Vulnerability Scanner</h2>
+          <p class="muted" id="portScanTargetHost" style="font-size:12px;font-family:var(--mono)">Target: 192.168.1.1</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="badge" id="portScanRiskBadge">READY</span>
+          <button class="btn btn-accent" id="startPortScanBtn">⚡ Start Port Scan</button>
+          <button class="btn" id="closePortScanBtn">✕ Close</button>
+        </div>
+      </div>
+      <div class="port-scan-body" style="margin-top:14px">
+        <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center">
+          <span style="font-size:12px;color:var(--muted)">Ports to scan:</span>
+          <button class="btn port-preset-chip active" data-preset="common" style="padding:2px 8px;font-size:11px">Common Services (24)</button>
+          <button class="btn port-preset-chip" data-preset="web" style="padding:2px 8px;font-size:11px">Web / HTTP (80, 443, 8080, 8443)</button>
+          <button class="btn port-preset-chip" data-preset="remote" style="padding:2px 8px;font-size:11px">Remote Mgmt (22, 23, 3389, 5900)</button>
+          <button class="btn port-preset-chip" data-preset="databases" style="padding:2px 8px;font-size:11px">Databases (1433, 3306, 5432, 27017)</button>
+        </div>
+        <div class="table-wrap" style="max-height:420px;overflow-y:auto">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th style="width:70px">Port</th>
+                <th style="width:110px">Service</th>
+                <th style="width:90px">Risk Level</th>
+                <th style="width:80px">State</th>
+                <th style="width:80px">Latency</th>
+                <th>Service Description & Banner</th>
+              </tr>
+            </thead>
+            <tbody id="portScanTableBody">
+              <tr><td colspan="6" class="muted" style="text-align:center;padding:24px">Select target and click <b>⚡ Start Port Scan</b> to probe open ports and detect vulnerabilities.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    NetVisual A+ · local, zero-dependency · <span id="footTs"></span><br>
+    <span style="font-size:10px; opacity:0.5; margin-top:4px; display:inline-block; letter-spacing: 1px;">GAI LAZAR</span>
+  </footer>
+
+  <script src="/static/app.js?v=6.6"></script>
+</body>
+</html>
