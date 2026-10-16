@@ -116,7 +116,7 @@ A single click gives you an instant, GPU-accelerated cyber dashboard covering yo
 ### Running from Source
 ```powershell
 # Clone repository
-git clone https://github.com/gaipunkx/NetVisual.git
+git clone https://github.com/GaiLazar/NetVisual.git
 cd NetVisual
 
 # Run in console mode
